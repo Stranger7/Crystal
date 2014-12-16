@@ -18,7 +18,7 @@ use core\Utils;
 abstract class DbDriver
 {
     /**
-     * @var resource
+     * @var resource|\mysqli
      */
     protected $conn = null;
 
@@ -57,7 +57,7 @@ abstract class DbDriver
     }
 
     /**
-     * @param resource $result
+     * @param mixed $result
      * @return \core\db_drivers\query_results\QueryResult
      */
     abstract protected function newQueryResult($result);
