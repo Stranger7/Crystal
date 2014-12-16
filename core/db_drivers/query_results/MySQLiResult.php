@@ -7,28 +7,31 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * Date: 07.12.2014
- * Time: 16:24
+ * Date: 16.12.2014
+ * Time: 16:26
  */
 
 namespace core\db_drivers\query_results;
 
-
-class PostgreResult extends QueryResult
+/**
+ * Class MySQLResult
+ * @package core\db_drivers\query_results
+ */
+class MySQLiResult extends QueryResult
 {
     /**
-     * @return object
+     * @return null|object
      */
     public function row()
     {
-        return pg_fetch_object($this->result);
+        return $this->result->fetch_object();
     }
 
     /**
-     * @return array
+     * @return array|null
      */
     public function result()
     {
-        return pg_fetch_all($this->result);
+        return $this->result->fetch_all();
     }
 }

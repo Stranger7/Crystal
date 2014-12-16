@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the Stem package.
+ * This file is part of the Crystal package.
  *
  * (c) Sergey Novikov (novikov.stranger@gmail.com)
  *
@@ -131,7 +131,7 @@ namespace core\db_drivers
         {
             $fields = implode(',', array_keys($data));
             $placeholders = implode(',', array_fill(0, count($data), '?'));
-            $sql = 'INSERT INTO ' . $table_name . ' (' . $fields . ') ' .
+            $sql = 'INSERT' . ' INTO ' . $table_name . ' (' . $fields . ') ' .
                 ' VALUES (' . $placeholders . ') RETURNING ' . $id;
             $row = $this->query($sql, array_values($data))->row();
             if ($row) {

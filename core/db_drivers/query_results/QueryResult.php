@@ -17,7 +17,7 @@ namespace core\db_drivers\query_results;
 abstract class QueryResult
 {
     /**
-     * @var resource
+     * @var \mysqli_result|resource
      */
     protected $result;
 
