@@ -91,10 +91,16 @@ class App
             Actuator::databases();
 
             self::$router = Actuator::router();
-            self::$router->actionDefinition();
+            if (Utils::isCLI()) {
+                self::$router->getActionFromCommandLine();
+            } else {
+                self::$router->getActionFromURI();
+            }
+
             self::$logger->setTitle(self::$router->getActionName());
 
             self::$router->execAction();
+
             ob_flush();
         } catch(\Exception $e) {
             $buffer = ob_get_contents();
@@ -149,32 +155,10 @@ class App
 
     /**
      * @param array $error
-     * @TODO: implement HTML-template usage
      */
     public static function showError($error)
     {
-        $html = <<< HTML
-<!DOCTYPE html>
-<html>
-<body>
-<table border=0 cellpadding="4px" style="background-color: red; color: yellow; font-size: 12px; font-family: Lucida Grande, Verdana, Geneva, Sans-serif">
-    <tr>
-        <td style="vertical-align: top">Error:</td>
-        <td><pre>{$error['message']}</pre></td>
-    </tr>
-    <tr>
-        <td>File:</td>
-        <td>{$error['file']}</td>
-    </tr>
-    <tr>
-        <td>Line:</td>
-        <td>{$error['line']}</td>
-    </tr>
-</table>
-</body>
-</html>
-HTML;
-        echo $html;
+        self::view('common/error', $error);
     }
 
     /**

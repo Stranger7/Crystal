@@ -47,14 +47,14 @@ class Router
      */
     private $routes = [];
 
-    private $class_name = '';
+    private $controller_name = '';
     private $method_name = '';
     private $parameters = [];
 
     /**
      * @var \core\generic\Controller
      */
-    private $object;
+    private $controller;
 
     public function __construct() {}
 
@@ -92,15 +92,18 @@ class Router
      */
     public function execAction()
     {
-        $this->object = new $this->class_name;
-        call_user_func_array([$this->object, $this->method_name], $this->parameters);
+        if (!method_exists($this->controller_name, $this->method_name)) {
+            throw new \RuntimeException("Method {$this->method_name} in class {$this->controller_name} not exist", 500);
+        }
+        $this->controller = new $this->controller_name;
+        call_user_func_array([$this->controller, $this->method_name], $this->parameters);
     }
 
     /**
-     * Looking for a suitable controller and method also defines the parameters of the method
+     * Looking for a suitable controller and method also defines the parameters of the method from URI
      * @throws \RuntimeException
      */
-    public function actionDefinition()
+    public function getActionFromURI()
     {
         $script_path = str_replace(
             'index.php',
@@ -115,23 +118,39 @@ class Router
         {
             if (preg_match($this->createPattern($description), $action) > 0)
             {
-                $this->class_name  = $description['class'];
+                $this->controller_name  = $description['class'];
                 $this->method_name = $description['action'];
                 $this->parameters  = $description['parameters'];
                 $this->parseParameters(
                     ltrim($http_action, '/'),
                     ltrim($description['request_uri'], '/')
                 );
-                if (!class_exists($this->class_name)) {
-                    throw new \RuntimeException("Class {$this->class_name} not exist", 500);
-                }
-                if (!method_exists($this->class_name, $this->method_name)) {
-                    throw new \RuntimeException("Method {$this->method_name} in class {$this->class_name} not exist", 500);
-                }
                 return;
             }
         }
         throw new \RuntimeException('Unable to resolve the request ' . $action, 404);
+    }
+
+    /**
+     * Looking for a suitable controller and method also defines the parameters of the method
+     * from command line.
+     * @throws \RuntimeException
+     */
+    public function getActionFromCommandLine()
+    {
+        if (isset($_SERVER['argv']) && count($_SERVER['argv']) >= 3)
+        {
+            $params = $_SERVER['argv'];
+            $this->setControllerName($params[1]);
+            $this->setMethodName($params[2]);
+            array_shift($params);
+            array_shift($params);
+            $this->setParameters($params);
+        } else {
+            $message = 'Not enough parameters.' . PHP_EOL . 'Syntax:'
+                . ' php console.php controller methods [param1=value1 [ ... ]]' . PHP_EOL;
+            App::failure(400, $message);
+        }
     }
 
     /**
@@ -165,7 +184,8 @@ class Router
     {
         $params = explode('/', substr($http_action, strlen($request_uri)));
         $i = 0;
-        foreach($this->parameters as $param => $value) {
+        foreach($this->parameters as $param => $value)
+        {
             $this->parameters[$param] = (isset($params[$i]) ? $params[$i] : '');
             $i++;
         }
@@ -176,7 +196,15 @@ class Router
      */
     public function controllerName()
     {
-        return $this->class_name;
+        return $this->controller_name;
+    }
+
+    /**
+     * @param string $controller_name
+     */
+    public function setControllerName($controller_name)
+    {
+        $this->controller_name = $controller_name;
     }
 
     /**
@@ -187,13 +215,35 @@ class Router
         return $this->method_name;
     }
 
+    /**
+     * @param $method_name
+     */
+    public function setMethodName($method_name)
+    {
+        $this->method_name = $method_name;
+    }
+
+    /**
+     * @return string
+     */
     public function getActionName()
     {
         return $this->controllerName() . '::' . $this->methodName();
     }
 
+    /**
+     * @return generic\Controller
+     */
     public function controller()
     {
-        return $this->object;
+        return $this->controller;
+    }
+
+    /**
+     * @param array $parameters
+     */
+    public function setParameters($parameters)
+    {
+        $this->parameters = $parameters;
     }
 }
