@@ -1,0 +1,43 @@
+[global]
+charset = "UTF-8"
+allow_get_array = yes
+standardize_newlines = yes
+proxy_ips = ""
+
+[security]
+enable_xss_filtering = yes
+csrf_protection = yes
+csrf_token_name = "csrf_token"
+csrf_cookie_name = "csrf_cookie"
+csrf_expire = 7200;
+csrf_regenerate = yes;
+
+[cookie]
+prefix = ""
+domain = ""
+path = "/"
+secure = no
+http_only = no
+
+[session]
+driver = "\core\session_drivers\DbSession"
+cookie_name = "crystal_session"
+expiration = 7200;
+match_user_agent = yes
+match_ip = yes
+table_name = "sessions"
+
+[logger]
+driver = "\core\loggers\BufferedLogger"
+levels = ALL
+
+[db:jeepsib]
+driver = Postgre
+default = yes
+auto_connect = yes
+connection_string = "host=localhost dbname=DB user=USER password=PASS"
+
+[routes]
+Home = / > app\web\Parts:index
+orderCreate = /orders/create > public\Orders:create
+orderEdit = POST::/orders/edit/{id,prefix} > public\Orders:edit
