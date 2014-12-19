@@ -10,7 +10,7 @@
  * Date: 29.09.2014
  * Time: 21:35
  */
-$app_name = 'Jeepsib public server';
+$app_name = '<<< Input app name here >>>';
 $app_mode = 'development';
 
 require_once '../app/bootstrap.php';
