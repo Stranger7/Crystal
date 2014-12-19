@@ -1,13 +1,13 @@
 <?php
 /**
- * @var array $css
- * @var array $js
+ * @var string $title
  */
 ?>
 <head>
     <meta charset="utf-8">
+    <title><?= $title ?></title>
 <?php
-    \core\App::view('common\css', ['list' => $css]);
-    \core\App::view('common\js', ['list' => $js]);
+if (isset($css)) \core\App::view('common\css', ['list' => $css]);
+if (isset($js)) \core\App::view('common\js', ['list' => $js]);
 ?>
 </head>
