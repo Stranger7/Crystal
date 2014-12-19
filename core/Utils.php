@@ -46,6 +46,24 @@ class Utils
         return str_replace(array('\\\\', '\\\''), array('\\', '\''), rtrim($result));
     }
 
+    public static function arrayToString($var=[], $newline='<br>')
+    {
+        $result = '';
+        if (is_array($var)) {
+            foreach ($var as $key => $value) {
+                if (is_array($value)) {
+                    $result .= (is_int($key) ? '' : ($key . ':' . $newline));
+                    $result .= Utils::arrayToString($value, $newline);
+                } else {
+                    $result .= (is_int($key) ? $value : $key . ': ' . $value) . $newline;
+                }
+            }
+        } else {
+            $result = $var;
+        }
+        return $result;
+    }
+
     /**
      * @param $string
      * @return string
@@ -166,5 +184,15 @@ class Utils
     {
         return (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])
             && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+    }
+
+    public static function url($action = '')
+    {
+        $base = $_SERVER['HTTP_HOST'] . $script_path = str_replace(
+            'index.php',
+            '',
+            str_replace('//index.php', '/index.php', $_SERVER['SCRIPT_NAME'])
+        );
+        return '//' . $base . ltrim($action, '/');
     }
 }

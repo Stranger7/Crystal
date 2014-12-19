@@ -7,53 +7,53 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * Date: 09.10.2014
- * Time: 1:35
+ * Date: 16.12.2014
+ * Time: 22:56
  */
 
-namespace core\field_types;
+namespace core\property_types;
 
 /**
  * Class Password
- * @package core\field_types
+ * @package core\property_types
  */
 class Password extends String
 {
     /**
-     * Should be set using setSalt
      * @var string
      */
-    private static $salt = '';
+    private $salt;
 
     /**
-     * Specifies of salt
-     * @param string $salt
-     */
-    public static function setSalt($salt)
-    {
-        self::$salt = $salt;
-    }
-
-    /**
-     * Crypts of string with salt
      * @param string $string
+     * @param string $salt
      * @return string
      */
-    public static function crypt($string)
+    public static function crypt($string, $salt)
     {
-        if (self::$salt == '') {
-            throw new \RuntimeException('Salt not specified');
-        }
-        return \crypt($string, self::$salt);
+        return crypt($string, $salt);
+    }
+
+    public function verify($password)
+    {
+        return ($this->get() === self::crypt($password, $this->salt));
     }
 
     /**
-     * Checks password
-     * @param string $password
-     * @return bool
+     * @param string $salt
+     * @return $this
      */
-    public function matched($password)
+    public function setSalt($salt)
     {
-        return (self::crypt($password) === $this->getValue());
+        $this->salt = $salt;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSalt()
+    {
+        return $this->salt;
     }
 }

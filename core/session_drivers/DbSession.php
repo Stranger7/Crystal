@@ -19,6 +19,22 @@ use core\generic\DbDriver;
 use core\generic\Session;
 use core\Request;
 
+/**
+ * Class DbSession
+ * @package core\session_drivers
+ *
+ * SQL-instruction for table creating:
+ *
+ * CREATE TABLE sessions (
+ *   id VARCHAR(32) NOT NULL,
+ *   created DATETIME NOT NULL,
+ *   updated DATETIME NOT NULL,
+ *   data text,
+ *   ip_address text,
+ *   user_agent text,
+ *   PRIMARY KEY (id)
+ * )
+ */
 class DbSession extends Session
 {
     /**
@@ -33,7 +49,7 @@ class DbSession extends Session
     protected $table_name = 'sessions';
 
     /*===============================================================*/
-    /*                         M E T H O D S                         */
+    /*                        M E T H O D S                          */
     /*===============================================================*/
 
     public function __construct(Request $request, DbDriver $db)
@@ -173,12 +189,12 @@ class DbSession extends Session
         return true;
     }
 
-    protected function destroy()
+    public function destroy()
     {
         return (parent::destroy() && $this->db->deleteEntry($this->table_name, ['id' => $this->id]));
     }
 
-    public  function close()
+    public function close()
     {
         $this->save();
         $this->gc();

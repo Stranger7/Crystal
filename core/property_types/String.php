@@ -17,7 +17,7 @@ use core\generic\Property;
 
 /**
  * Class String
- * @package core\field_types
+ * @package core\property_types
  */
 class String extends Property
 {
@@ -45,6 +45,4 @@ class String extends Property
     {
         return strval($value);
     }
-
 }
-

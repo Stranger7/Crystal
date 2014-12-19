@@ -202,7 +202,7 @@ class MySQLi extends DbDriver
     {
         App::logger()->sql($sql);
 
-        $result = $this->conn->query($sql);
+        $result = $this->getConn()->query($sql);
         if (!$result) {
             throw new \RuntimeException("Can't execute query $sql: "
                 . "Error({$this->conn->errno}): {$this->conn->error}");

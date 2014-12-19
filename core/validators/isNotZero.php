@@ -19,7 +19,7 @@ use core\generic\Validator;
  * Class isNotZero
  * @package core\validators
  */
-class isNotZero extends Validator
+class IsNotZero extends Validator
 {
     /**
      * @return bool

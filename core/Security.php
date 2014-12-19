@@ -184,10 +184,7 @@ class Security
         if (!isset($_POST[$this->csrf_token_name], $_COOKIE[$this->csrf_cookie_name])
             OR $_POST[$this->csrf_token_name] !== $_COOKIE[$this->csrf_cookie_name]) // Do the tokens match?
         {
-            /** @var \core\generic\WebController $controller */
-            $controller = App::router()->controller();
-            $controller->http()->header(500);
-            App::failure(403, 'The action you have requested is not allowed');
+            throw new \RuntimeException('The action you have requested is not allowed', 403);
         }
 
         // We kill this since we're done and we don't want to pollute the _POST array
@@ -809,8 +806,6 @@ class Security
             $match[0]);
     }
 
-    // --------------------------------------------------------------------
-
     /**
      * Attribute Conversion
      *
@@ -822,8 +817,6 @@ class Security
     {
         return str_replace(array('>', '<', '\\'), array('&gt;', '&lt;', '\\\\'), $match[0]);
     }
-
-    // --------------------------------------------------------------------
 
     /**
      * Filter Attributes
@@ -848,8 +841,6 @@ class Security
 
         return $out;
     }
-
-    // --------------------------------------------------------------------
 
     /**
      * HTML Entity Decode Callback
@@ -876,8 +867,6 @@ class Security
         );
     }
 
-    // --------------------------------------------------------------------
-
     /**
      * Do Never Allowed
      *
@@ -894,8 +883,6 @@ class Security
         }
         return $str;
     }
-
-    // --------------------------------------------------------------------
 
     /**
      * Set CSRF Hash and Cookie

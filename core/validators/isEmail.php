@@ -20,7 +20,7 @@ use core\generic\Validator;
  * Class isEmail
  * @package core\validators
  */
-class isEmail extends Validator
+class IsEmail extends Validator
 {
     /**
      * @return bool

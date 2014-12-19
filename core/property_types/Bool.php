@@ -16,6 +16,10 @@ namespace core\property_types;
 use core\generic\Property;
 use core\Utils;
 
+/**
+ * Class Bool
+ * @package core\property_types
+ */
 class Bool extends Property
 {
     private $format = ['TRUE', 'FALSE'];

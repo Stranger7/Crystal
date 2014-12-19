@@ -63,4 +63,11 @@ class Http
         echo '<script type="text/javascript">window.location = "' . $url . '"</script>';
         exit();
     }
+
+    public function forbidden()
+    {
+        $this->header(403);
+        App::view('common/forbidden');
+        exit();
+    }
 }

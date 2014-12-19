@@ -19,7 +19,7 @@ use core\generic\Validator;
  * Class Required
  * @package core\validators
  */
-class isRequired extends Validator
+class IsRequired extends Validator
 {
     /**
      * @return bool

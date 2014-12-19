@@ -239,11 +239,53 @@ abstract class Model
      */
     public function getEntry($select = '*')
     {
-        return $this->db->getEntry(
+        $row = $this->db->getEntry(
             $this->getTableName(),
             [$this->id->name() => $this->id->get()],
             $select
         );
+        if ($row) {
+            $this->deployFromRow($row);
+        }
+        return $row;
+    }
+
+    /**
+     * @param object $row
+     */
+    public function deployFromRow($row)
+    {
+        if (is_array($row) || is_object($row))
+        {
+            foreach ($row as $name => $value)
+            {
+                if (isset($this->properties[$name])) {
+                    $this->setPropertyValue($this->properties[$name], $value);
+                } else {
+                    if ($name == $this->id->name()) {
+                        $this->id->set($value);
+                    }
+                }
+            }
+        }
+    }
+
+    private function setPropertyValue(Property $property, $value, $with_cast = true)
+    {
+        $property->set($value, $with_cast);
+    }
+
+    /**
+     * Simply return entries from specified table
+     *
+     * @param string $order_by
+     * @param int $limit
+     * @param int $offset
+     * @return \core\db_drivers\query_results\QueryResult|mixed
+     */
+    public function entries($order_by = '', $limit = 0, $offset = 0)
+    {
+        return $this->db->entries($this->getTableName(), $order_by, $limit, $offset);
     }
 
     /*===============================================================*/
@@ -332,6 +374,9 @@ abstract class Model
         return $data;
     }
 
+    /**
+     * @param bool $idHasValueCheck
+     */
     private function idInitializationCheck($idHasValueCheck = false)
     {
         if (is_null($this->id)) {

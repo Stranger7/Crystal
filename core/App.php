@@ -17,7 +17,8 @@ use core\generic\WebController;
 
 class App
 {
-    const CONFIG_FILE               = 'app/config/config.ini';
+    const WEB_CONFIG_FILE           = 'app/config/web_config.ini';
+    const CLI_CONFIG_FILE           = 'app/config/cli_config.ini';
     const VIEW_PATH                 = 'app/views';
 
     // Fail codes
@@ -77,7 +78,9 @@ class App
                 break;
         }
 
-        self::$config = new Config(BASE_PATH . self::CONFIG_FILE);
+        self::$config = new Config(
+            BASE_PATH . (Utils::isCLI() ? self::CLI_CONFIG_FILE : self::WEB_CONFIG_FILE)
+        );
     }
 
     public static function run()
@@ -110,11 +113,14 @@ class App
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ];
-            if (!Utils::isCLI() && (self::router()->controller() instanceof WebController))
+            if (!Utils::isCLI())
             {
                 /** @var WebController $controller */
-                $controller = self::router()->controller();
-                $controller->http()->header($e->getCode());
+                if (self::router() && ($controller = self::router()->controller())) {
+                    $controller->http()->header($e->getCode());
+                } else {
+                    (new Http())->header($e->getCode());
+                }
                 echo $buffer;
                 self::showError($error);
             } else {

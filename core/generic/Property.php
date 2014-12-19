@@ -73,9 +73,9 @@ abstract class Property
      * @param mixed $value
      * @return $this
      */
-    public function set($value)
+    public function set($value, $with_cast = true)
     {
-        $this->value = $this->cast($value);
+        $this->value = ($with_cast ? $this->cast($value) : $value);
         return $this;
     }
 

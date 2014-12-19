@@ -117,7 +117,12 @@ abstract class Session
             : $this->match_ip;
 
         $this->start();
-   }
+    }
+
+    public function __destruct()
+    {
+        $this->close();
+    }
 
     /**
      * @param string $item
@@ -238,9 +243,10 @@ abstract class Session
      * Delete session
      * @return bool
      */
-    protected function destroy()
+    public function destroy()
     {
         $this->is_live = false;
+        $this->data = [];
         return true;
     }
 

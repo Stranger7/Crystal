@@ -25,28 +25,30 @@ class Html
      * Generate HTML code for hidden input for CSRF token
      * @throws \Exception
      */
-    public static function CSRFToken()
+    public static function CSRFToken($prefix_for_id = '')
     {
         if (App::router()->controller() instanceof WebController)
         {
             /** @var WebController $controller */
             $controller = App::router()->controller();
-            echo '<input type="hidden" id="' . App::config()->get('security', 'csrf_token_name')
-                . '" value="' . $controller->security()->getCsrfHash() . '" />' . PHP_EOL;
+            echo '<input type="hidden"'
+                . ' id="' . $prefix_for_id . App::config()->get('security', 'csrf_token_name') . '"'
+                . ' name="' . App::config()->get('security', 'csrf_token_name') . '"'
+                . ' value="' . $controller->security()->getCsrfHash() . '" />' . PHP_EOL;
         }
     }
 
     public static function js($list = [])
     {
         foreach ($list as $js) {
-            echo self::indent() . '<script type="application/javascript" src="' . $js . '"></script>' . PHP_EOL;
+                echo self::indent() . '<script type="text/javascript" src="' . Utils::url($js) . '"></script>' . PHP_EOL;
         }
     }
 
     public static function css($list = [])
     {
         foreach ($list as $css) {
-            echo self::indent() . '<link rel="stylesheet" href="' . $css . '" type="text/css" />' . PHP_EOL;
+            echo self::indent() . '<link rel="stylesheet" href="' . Utils::url($css) . '" type="text/css" />' . PHP_EOL;
         }
     }
 

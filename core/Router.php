@@ -47,8 +47,19 @@ class Router
      */
     private $routes = [];
 
+    /**
+     * @var string
+     */
     private $controller_name = '';
+
+    /**
+     * @var string
+     */
     private $method_name = '';
+
+    /**
+     * @var array
+     */
     private $parameters = [];
 
     /**
@@ -95,6 +106,7 @@ class Router
         if (!method_exists($this->controller_name, $this->method_name)) {
             throw new \RuntimeException("Method {$this->method_name} in class {$this->controller_name} not exist", 500);
         }
+        $this->checkParameters();
         $this->controller = new $this->controller_name;
         call_user_func_array([$this->controller, $this->method_name], $this->parameters);
     }
@@ -145,7 +157,18 @@ class Router
             $this->setMethodName($params[2]);
             array_shift($params);
             array_shift($params);
-            $this->setParameters($params);
+            array_shift($params);
+            $method_params = [];
+            foreach($params as $param)
+            {
+                $a = explode('=', $param);
+                if (sizeof($a) < 2) {
+                    App::failure(400, $this->makeErrorMessageForInvalidParamsCLI());
+                }
+                $method_params[$a[0]] = $a[1];
+            }
+
+            $this->setParameters($method_params);
         } else {
             $message = 'Not enough parameters.' . PHP_EOL . 'Syntax:'
                 . ' php console.php controller methods [param1=value1 [ ... ]]' . PHP_EOL;
@@ -245,5 +268,59 @@ class Router
     public function setParameters($parameters)
     {
         $this->parameters = $parameters;
+    }
+
+    private function checkParameters()
+    {
+        $method = new \ReflectionMethod($this->controllerName(), $this->methodName());
+        $params = $method->getParameters();
+        foreach($params as $param)
+        {
+            if (!$param->isOptional() && !isset($this->parameters[$param->getName()])) {
+                throw new \RuntimeException($this->makeErrorMessageForInvalidParams(), 400);
+            }
+        }
+    }
+
+    private function makeErrorMessageForInvalidParams()
+    {
+        return Utils::isCLI()
+            ? $this->makeErrorMessageForInvalidParamsCLI()
+            : $this->makeErrorMessageForInvalidParamsWeb();
+    }
+
+    private function makeErrorMessageForInvalidParamsCLI()
+    {
+        $params = (new \ReflectionMethod($this->controllerName(), $this->methodName()))
+            ->getParameters();
+        $message = 'Not enough parameters.' . PHP_EOL . 'Syntax:' . PHP_EOL
+            . 'php crystal.php '
+            . $this->controllerName() . ' '
+            . $this->methodName();
+        /** @var \ReflectionParameter $param */
+        foreach($params as $param) {
+            if ($param->isOptional()) {
+                $message .= ' [' . $param->getName() . '=value]';
+            } else {
+                $message .= ' ' . $param->getName() . '=value';
+            }
+        }
+        return $message;
+    }
+
+    private function makeErrorMessageForInvalidParamsWeb()
+    {
+        $params = (new \ReflectionMethod($this->controllerName(), $this->methodName()))
+            ->getParameters();
+        $message = 'Required parameters: ';
+        /** @var \ReflectionParameter $param */
+        foreach($params as $param) {
+            if ($param->isOptional()) {
+                $message .= '[&' . $param->getName() . '=value]';
+            } else {
+                $message .= '&' . $param->getName() . '=value';
+            }
+        }
+        return $message;
     }
 }
