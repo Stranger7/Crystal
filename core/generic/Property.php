@@ -50,7 +50,7 @@ abstract class Property
     /**
      * @var array
      */
-    private $validators = [];
+    private $rules = [];
 
     /**
      * @var array
@@ -201,40 +201,40 @@ abstract class Property
     }
 
     /**
-     * Add validator to internal array
-     * @param Validator $validator
+     * Add rule to internal array
+     * @param Rule $rule
      * @return $this
      */
-    public function validator(Validator $validator)
+    public function rule(Rule $rule)
     {
-        $validator->forProperty($this);
-        $this->validators[] = $validator;
+        $rule->forProperty($this);
+        $this->rules[] = $rule;
         return $this;
     }
 
     /**
-     * Validates of field value
+     * Validates field value
      * @return bool
      */
     public function isValid()
     {
         $valid = true;
         $this->errors = [];
-        foreach ($this->validators as $validator) {
-            $valid &= $this->execValidator($validator);
+        foreach ($this->rules as $rule) {
+            $valid &= $this->applyRule($rule);
         }
         return $valid;
     }
 
     /**
-     * Runs of validator
-     * @param Validator $validator
+     * Perform validation for specified rule
+     * @param Rule $rule
      * @return bool
      */
-    private function execValidator(Validator $validator)
+    private function applyRule(Rule $rule)
     {
-        if (!$validator->isValid()) {
-            $this->addError($validator->getMessage());
+        if (!$rule->isValid()) {
+            $this->addError($rule->getMessage());
             return false;
         }
         return true;

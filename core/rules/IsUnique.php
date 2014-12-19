@@ -11,14 +11,17 @@
  * Time: 22:43
  */
 
-namespace core\validators;
-
+namespace core\rules;
 
 use core\generic\DbDriver;
 use core\generic\Property;
-use core\generic\Validator;
+use core\generic\Rule;
 
-class IsUnique extends Validator
+/**
+ * Class IsUnique
+ * @package core\rules
+ */
+class IsUnique extends Rule
 {
     /**
      * @var DbDriver

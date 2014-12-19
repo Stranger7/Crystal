@@ -11,18 +11,18 @@
  * Time: 0:50
  */
 
-namespace core\validators;
+namespace core\rules;
 
 use core\generic\Property;
-use core\generic\Validator;
+use core\generic\Rule;
 
 /**
- * Matching the value of the current property value of the specified property
+ * Class MatchedWith
+ * @package core\rules
  *
- * Class isMatched
- * @package core\validators
+ * Matching the value of the current property value of the specified property
  */
-class MatchedWith extends Validator
+class MatchedWith extends Rule
 {
     /**
      * @var Property

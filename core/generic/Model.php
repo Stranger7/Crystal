@@ -57,11 +57,11 @@ abstract class Model
      * Specify the identifier
      *
      * $this->setTableName('customers');
-     * $this->id = new Integer('id')->title('Identifier')->validator(new isRequired());
-     * $this->property('name', 'String')->title('Customer')->validator(new isRequired());
+     * $this->id = new Integer('id')->title('Identifier')->rule(new isRequired());
+     * $this->property('name', 'String')->title('Customer')->rule(new isRequired());
      * $this->property('email', 'String')->title('E-mail')
-     *      ->validator(new isRequired())
-     *      ->validator(new isEmail());
+     *      ->rule(new isRequired())
+     *      ->rule(new isEmail());
      *
      * @param string $dsn
      */

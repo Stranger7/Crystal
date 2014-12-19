@@ -11,12 +11,16 @@
  * Time: 2:03
  */
 
-namespace core\validators;
+namespace core\rules;
 
 use core\generic\DbDriver;
-use core\generic\Validator;
+use core\generic\Rule;
 
-class BelongsTo extends Validator
+/**
+ * Class BelongsTo
+ * @package core\rules
+ */
+class BelongsTo extends Rule
 {
     /**
      * @var DbDriver

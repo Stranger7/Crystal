@@ -12,15 +12,15 @@
  */
 
 
-namespace core\validators;
+namespace core\rules;
 
-use core\generic\Validator;
+use core\generic\Rule;
 
 /**
- * Class isEmail
- * @package core\validators
+ * Class IsEmail
+ * @package core\rules
  */
-class IsEmail extends Validator
+class IsEmail extends Rule
 {
     /**
      * @return bool

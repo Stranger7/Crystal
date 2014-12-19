@@ -14,10 +14,10 @@
 namespace core\generic;
 
 /**
-* Abstract class Validator
-* @package core\generic
-*/
-abstract class Validator
+ * Class Rule
+ * @package core\generic
+ */
+abstract class Rule
 {
     /**
      * @var Property
@@ -32,7 +32,7 @@ abstract class Validator
     }
 
     /**
-     * Validates of $value
+     * Validates value of property
      * @return bool
      */
     abstract public function isValid();

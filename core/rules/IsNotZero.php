@@ -7,20 +7,26 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * Date: 17.12.2014
- * Time: 1:41
+ * Date: 26.10.2014
+ * Time: 12:20
  */
 
-namespace core\validators;
+namespace core\rules;
 
-class MoreOrEqual extends MoreThen
+use core\generic\Rule;
+
+/**
+ * Class IsNotZero
+ * @package core\rules
+ */
+class IsNotZero extends Rule
 {
     /**
      * @return bool
      */
     public function isValid()
     {
-        return ($this->property->get() >= $this->min);
+        return ($this->property->get() !== 0);
     }
 
     /**
@@ -28,6 +34,6 @@ class MoreOrEqual extends MoreThen
      */
     public function getMessage()
     {
-        return $this->property->name() . " less then {$this->min}";
+        return $this->property->title() . ' can\'t be equal zero';
     }
 }

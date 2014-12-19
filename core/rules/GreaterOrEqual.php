@@ -7,26 +7,24 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * Date: 26.10.2014
- * Time: 12:20
+ * Date: 17.12.2014
+ * Time: 1:41
  */
 
-namespace core\validators;
-
-use core\generic\Validator;
+namespace core\rules;
 
 /**
- * Class isNotZero
- * @package core\validators
+ * Class GreaterOrEqual
+ * @package core\rules
  */
-class IsNotZero extends Validator
+class GreaterOrEqual extends MoreThen
 {
     /**
      * @return bool
      */
     public function isValid()
     {
-        return ($this->property->get() !== 0);
+        return ($this->property->get() >= $this->min);
     }
 
     /**
@@ -34,6 +32,6 @@ class IsNotZero extends Validator
      */
     public function getMessage()
     {
-        return $this->property->title() . ' can\'t be equal zero';
+        return $this->property->name() . " less then {$this->min}";
     }
 }

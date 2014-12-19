@@ -11,15 +11,15 @@
  * Time: 23:24
  */
 
-namespace core\validators;
+namespace core\rules;
 
-use core\generic\Validator;
+use core\generic\Rule;
 
 /**
- * Class Required
- * @package core\validators
+ * Class IsRequired
+ * @package core\rules
  */
-class IsRequired extends Validator
+class IsRequired extends Rule
 {
     /**
      * @return bool

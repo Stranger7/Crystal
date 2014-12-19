@@ -8,34 +8,27 @@
  * file that was distributed with this source code.
  *
  * Date: 17.12.2014
- * Time: 1:14
+ * Time: 1:33
  */
 
-namespace core\validators;
+namespace core\rules;
 
-use core\generic\Validator;
+use core\generic\Rule;
 
-class Range extends Validator
+class MoreThen extends Rule
 {
     /**
      * @var mixed
      */
-    private $min;
-
-    /**
-     * @var mixed
-     */
-    private $max;
+    protected $min;
 
     /**
      * @param mixed $min
-     * @param mixed $max
      */
-    public function __construct($min, $max)
+    public function __construct($min)
     {
         parent::__construct();
         $this->min = $min;
-        $this->max = $max;
     }
 
     /**
@@ -43,7 +36,7 @@ class Range extends Validator
      */
     public function isValid()
     {
-        return ($this->property->get() >= $this->min && $this->property->get() <= $this->max);
+        return ($this->property->get() > $this->min);
     }
 
     /**
@@ -51,6 +44,6 @@ class Range extends Validator
      */
     public function getMessage()
     {
-        return $this->property->name() . " is not in range [{$this->min}..{$this->max}]";
+        return $this->property->name() . " less then {$this->min} or equal";
     }
 }
