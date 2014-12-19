@@ -10,10 +10,12 @@
  * Date: 29.09.2014
  * Time: 21:35
  */
-$app_name = 'Jeepsib public server. CLI';
+$app_name = '<<< input app name here >>>';
 $app_mode = 'development';
 
-require_once '../app/bootstrap.php';
+chdir(__DIR__);
+
+require_once "../app/bootstrap.php";
 
 if (!\core\Utils::isCLI()) {
     \core\App::failure('This application can only be executed in CLI mode');
