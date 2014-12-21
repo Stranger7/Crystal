@@ -55,10 +55,11 @@ class BelongsTo extends Rule
      */
     public function isValid()
     {
-        return ($this->db->getEntry(
-            $this->table_name,
-            [$this->referenced_to => $this->property->preparedForDb()]
-        ));
+        return $this->db
+            ->select()
+            ->from($this->table_name)
+            ->where("{$this->referenced_to} = ?", $this->property->preparedForDb())
+            ->run()->row();
     }
 
     /**

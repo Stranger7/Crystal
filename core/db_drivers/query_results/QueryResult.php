@@ -13,7 +13,10 @@
 
 namespace core\db_drivers\query_results;
 
-
+/**
+ * Class QueryResult
+ * @package core\db_drivers\query_results
+ */
 abstract class QueryResult
 {
     /**
@@ -22,7 +25,7 @@ abstract class QueryResult
     protected $result;
 
     /**
-     * @param resource $result
+     * @param \mysqli_result|resource $result
      */
     public function __construct($result)
     {

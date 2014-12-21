@@ -161,7 +161,7 @@ abstract class Model
         if ($this->beforeCreate())
         {
             $this->id->set(
-                $this->db->createEntry(
+                $this->db->insert(
                     $this->getTableName(),
                     $this->createParamArray()
                 )
@@ -188,11 +188,9 @@ abstract class Model
     public function update()
     {
         if ($this->beforeUpdate()) {
-            $this->db->updateEntry(
-                $this->getTableName(),
-                $this->createParamArray(),
-                [$this->id->name() => $this->id->get()]
-            );
+            $this->db
+                ->update($this->getTableName(), $this->createParamArray())
+                ->where("{$this->id->name()} = ?", $this->id->get())->run();
             return $this->afterUpdate();
         }
         return false;
@@ -215,10 +213,10 @@ abstract class Model
     public function delete()
     {
         if ($this->beforeDelete()) {
-            $this->db->deleteEntry(
-                $this->getTableName(),
-                [$this->id->name() => $this->id->get()]
-            );
+            $this->db
+                ->delete($this->getTableName())
+                ->where("{$this->id->name()} = ?", $this->id->get())
+                ->run();
             return $this->afterDelete();
         }
         return false;
@@ -239,12 +237,14 @@ abstract class Model
      */
     public function getEntry($select = '*')
     {
-        $row = $this->db->getEntry(
-            $this->getTableName(),
-            [$this->id->name() => $this->id->get()],
-            $select
-        );
-        if ($row) {
+        $row = $this->db
+            ->select($select)
+            ->from($this->getTableName())
+            ->where($this->id->name() . ' = ? ', $this->id->get())
+            ->run()->row();
+
+        if ($row)
+        {
             $this->deployFromRow($row);
         }
         return $row;
@@ -273,19 +273,6 @@ abstract class Model
     private function setPropertyValue(Property $property, $value, $with_cast = true)
     {
         $property->set($value, $with_cast);
-    }
-
-    /**
-     * Simply return entries from specified table
-     *
-     * @param string $order_by
-     * @param int $limit
-     * @param int $offset
-     * @return \core\db_drivers\query_results\QueryResult|mixed
-     */
-    public function entries($order_by = '', $limit = 0, $offset = 0)
-    {
-        return $this->db->entries($this->getTableName(), $order_by, $limit, $offset);
     }
 
     /*===============================================================*/

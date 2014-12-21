@@ -74,11 +74,7 @@ class DbSession extends Session
     protected function create()
     {
         if (parent::create()) {
-            return $this->db->createEntry(
-                $this->table_name,
-                $this->getDataForStore('create'),
-                'id'
-            );
+            return $this->db->insert($this->table_name, $this->getDataForStore('create'), 'id');
         }
         return false;
     }
@@ -92,11 +88,11 @@ class DbSession extends Session
         if (parent::save())
         {
             $this->updated = time();
-            if ($this->db->updateEntry(
-                $this->table_name,
-                $this->getDataForStore('update'),
-                ['id' => $this->id]
-            )) {
+            if ($this->db
+                ->update($this->table_name, $this->getDataForStore('update'))
+                ->where('id = ?', $this->id)
+                ->run())
+            {
                 App::logger()->debug('Session [' . __CLASS__ . '] saved. id: ' . $this->id);
                 return true;
             }
@@ -115,8 +111,12 @@ class DbSession extends Session
             App::logger()->error('Session [' . __CLASS__ . '] without id not loaded');
             return false;
         }
-
-        if ($row = $this->db->getEntry($this->table_name, ['id' => $this->id])) {
+        $row = $this->db
+            ->select('*')
+            ->from($this->table_name)
+            ->where('id = ?', $this->id)
+            ->run()->row();
+        if ($row) {
             App::logger()->debug('Session [' . __CLASS__ . '] with id ' . $this->id .  ' loaded');
             return $this->deployFromStorage($row);
         } else {
@@ -179,19 +179,24 @@ class DbSession extends Session
         if (mt_rand(1, $divisor) <= $probability)
         {
             $expire = time() - $this->expiration;
-            $this->db->query(
-                'DELETE' . ' FROM ' . $this->table_name . ' WHERE updated < ?',
-                [date('Y-m-d H:i:s', $expire)]
-            );
+            $this->db
+                ->delete($this->table_name)
+                ->where('updated < ?', date('Y-m-d H:i:s', $expire))
+                ->run();
             App::logger()->debug('Garbage collector performed');
         }
-
         return true;
     }
 
     public function destroy()
     {
-        return (parent::destroy() && $this->db->deleteEntry($this->table_name, ['id' => $this->id]));
+        return (
+            parent::destroy()
+            && $this->db
+                ->delete($this->table_name)
+                ->where('id = ?', $this->id)
+                ->run()
+        );
     }
 
     public function close()

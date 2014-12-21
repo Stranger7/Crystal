@@ -15,6 +15,7 @@ namespace core\db_drivers;
 
 use core\App;
 use core\db_drivers\query_results\MySQLiResult;
+use core\db_drivers\sql_builders\MySQLiSQLBuilder;
 use core\generic\DbDriver;
 
 /**
@@ -52,6 +53,10 @@ class MySQLi extends DbDriver
         $this->setPassword(ini_get("mysqli.default_pw"));
         $this->setSocket(ini_get("mysqli.default_socket"));
     }
+
+    /*===============================================================*/
+    /*            C O N N E C T I O N    M E T H O D S               */
+    /*===============================================================*/
 
     public function connect()
     {
@@ -172,25 +177,39 @@ class MySQLi extends DbDriver
         $this->socket = $socket;
     }
 
+    /*===============================================================*/
+    /*          O V E R R I D D E N      M E T H O D S               */
+    /*===============================================================*/
+
     /**
-     * @param resource $result
+     * @param \mysqli_result $result
      * @return MySQLiResult
      */
-    protected function newQueryResult($result)
+    protected function queryResult($result)
     {
         return new MySQLiResult($result);
     }
 
-    protected function doCreateEntry($table_name, $data, $id = '')
+    /**
+     * @return \core\db_drivers\sql_builders\MySQLiSQLBuilder
+     */
+    protected function sqlBuilder()
     {
-        $fields = implode(',', array_keys($data));
-        $placeholders = implode(',', array_fill(0, count($data), '?'));
-        $sql = 'INSERT' . ' INTO ' . $table_name . ' (' . $fields . ') ' .
-            ' VALUES (' . $placeholders . ')';
-        if ($this->query($sql, array_values($data))) {
-            return $this->conn->insert_id;
+        return new MySQLiSQLBuilder();
+    }
+
+    /**
+     * Inserts record to table and returns id of record
+     * @param string $table_name
+     * @param array $data
+     * @return mixed
+     */
+    public function insert($table_name, $data)
+    {
+        if (!$this->sqlBuilder()->setDb($this)->insert($table_name, $data)->run()) {
+            throw new \RuntimeException('Can\'t create entry: ' . $this->getConn()->error, 500);
         }
-        throw new \RuntimeException('Can\'t create entry: ' . $this->conn->error, 500);
+        return $this->getConn()->insert_id;
     }
 
     /**
@@ -202,11 +221,12 @@ class MySQLi extends DbDriver
     {
         App::logger()->sql($sql);
 
+        // Call method mysqli::query
         $result = $this->getConn()->query($sql);
         if (!$result) {
             throw new \RuntimeException("Can't execute query $sql: "
                 . "Error({$this->conn->errno}): {$this->conn->error}");
         }
-        return (is_bool($result) ? true : $this->newQueryResult($result));
+        return (is_bool($result) ? true : $this->queryResult($result));
     }
 }

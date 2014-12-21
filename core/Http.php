@@ -43,6 +43,7 @@ class Http
     /**
      * Output specified by $code HTTP-header
      * @param int $code
+     * @param array $strings
      */
     public function header($code = 200, $strings = [])
     {

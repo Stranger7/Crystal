@@ -62,16 +62,19 @@ abstract class Property
     /*===============================================================*/
 
     /**
-     * @param $this
+     * @param $name
+     * @return \core\generic\Property
      */
     public function __construct($name)
     {
         $this->name($name);
+        return $this;
     }
 
     /**
      * @param mixed $value
-     * @return $this
+     * @param bool $with_cast
+     * @return \core\generic\Property
      */
     public function set($value, $with_cast = true)
     {
@@ -101,7 +104,7 @@ abstract class Property
 
     /**
      * Sets for property self::NOT_INITIALIZED
-     * @return $this
+     * @return \core\generic\Property
      */
     public function clear()
     {
@@ -120,7 +123,7 @@ abstract class Property
 
     /**
      * @param mixed $default
-     * @return $this
+     * @return \core\generic\Property
      */
     public function useAsDefault($default)
     {
@@ -147,7 +150,7 @@ abstract class Property
 
     /**
      * @param null|string $name
-     * @return $this|string
+     * @return \core\generic\Property|string
      */
     public function name($name = self::NOT_INITIALIZED)
     {
@@ -161,7 +164,7 @@ abstract class Property
 
     /**
      * @param null|string $title
-     * @return $this|string
+     * @return \core\generic\Property|string
      */
     public function title($title = self::NOT_INITIALIZED)
     {
@@ -183,7 +186,7 @@ abstract class Property
     /**
      * Setter
      * @param bool $read_only
-     * @return $this
+     * @return \core\generic\Property
      */
     public function readOnly($read_only = true)
     {
@@ -203,7 +206,7 @@ abstract class Property
     /**
      * Add rule to internal array
      * @param Rule $rule
-     * @return $this
+     * @return \core\generic\Property
      */
     public function rule(Rule $rule)
     {

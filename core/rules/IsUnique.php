@@ -56,15 +56,15 @@ class IsUnique extends Rule
      */
     public function isValid()
     {
-        $params = [];
-        $sql = 'SELECT ' . '*' .' FROM ' . $this->table_name
-            . ' WHERE ' . $this->property->name() . ' = ?';
-        $params[] = $this->property->get();
-        if (!$this->id->isEmpty()) {
-            $sql .= ' AND ' . $this->id->name() . ' <> ?';
-            $params[] = $this->id->get();
+        $qb = $this->db
+            ->select('*')
+            ->from($this->table_name)
+            ->where("{$this->property->name()} = ?", $this->property->get());
+        if (!$this->id->isEmpty())
+        {
+            $qb->where("{$this->id->name()} <> ?", $this->id->get());
         }
-        return !$this->db->query($sql, $params)->row();
+        return !$qb->run()->row();
     }
 
     /**

@@ -15,6 +15,7 @@ namespace core\db_drivers
 {
     use core\App;
     use core\db_drivers\query_results\PostgreResult;
+    use core\db_drivers\sql_builders\PostgreSQLBuilder;
     use core\generic\DbDriver;
 
     /**
@@ -36,14 +37,14 @@ namespace core\db_drivers
          */
         private $connect_type = 0;
 
-        /*===============================================================*/
-        /*                         M E T H O D S                         */
-        /*===============================================================*/
-
         public function __construct()
         {
             parent::__construct();
         }
+
+        /*===============================================================*/
+        /*            C O N N E C T I O N    M E T H O D S               */
+        /*===============================================================*/
 
         /**
          * function for connecting to database
@@ -96,13 +97,25 @@ namespace core\db_drivers
             $this->connect_type = intval($connect_type);
         }
 
+        /*===============================================================*/
+        /*          O V E R R I D D E N      M E T H O D S               */
+        /*===============================================================*/
+
         /**
          * @param resource $result
          * @return \core\db_drivers\query_results\PostgreResult
          */
-        protected function newQueryResult($result)
+        protected function queryResult($result)
         {
             return new PostgreResult($result);
+        }
+
+        /**
+         * @return \core\db_drivers\sql_builders\PostgreSQLBuilder
+         */
+        protected function sqlBuilder()
+        {
+            return new PostgreSQLBuilder();
         }
 
         /**
@@ -112,32 +125,17 @@ namespace core\db_drivers
          * @param string $id. It is field name
          * @return mixed
          */
-        public function createEntry($table_name, $data, $id = '')
+        public function insert($table_name, $data, $id = '')
         {
             if (empty($id)) {
                 throw new \LogicException('Invalid parameters for createEntry function. ' .
                     'ID field name not specified', 501);
             }
-            return parent::createEntry($table_name, $data, $id);
-        }
-
-        /**
-         * @param string $table_name
-         * @param array $data
-         * @param string $id
-         * @return mixed
-         */
-        protected function doCreateEntry($table_name, $data, $id = '')
-        {
-            $fields = implode(',', array_keys($data));
-            $placeholders = implode(',', array_fill(0, count($data), '?'));
-            $sql = 'INSERT' . ' INTO ' . $table_name . ' (' . $fields . ') ' .
-                ' VALUES (' . $placeholders . ') RETURNING ' . $id;
-            $row = $this->query($sql, array_values($data))->row();
-            if ($row) {
-                return $row->$id;
+            $row = $this->sqlBuilder()->setDb($this)->insert($table_name, $data, $id)->run()->row();
+            if (!$row) {
+                throw new \RuntimeException('Internal error. Can\'t create entry');
             }
-            throw new \RuntimeException('Internal error. Can\'t create entry');
+            return $row->$id;
         }
 
         /**
@@ -154,27 +152,17 @@ namespace core\db_drivers
                     . pg_last_error($this->getConn()));
             }
 
-            return $this->newQueryResult($result);
+            return $this->queryResult($result);
         }
+
+        /*===============================================================*/
+        /*            A U X I L I A R Y      M E T H O D S               */
+        /*===============================================================*/
 
         /**
-         * This function has been copied from the framework "CodeIgniter v.3"
-         *
-         * "Smart" Escape String
-         *
-         * Escapes data based on type
-         *
-         * @param	string	$param
-         * @return	mixed
+         * Remove password from connection string for representation in log
+         * @return string
          */
-        public function escape($param)
-        {
-            if (is_bool($param)) {
-                return ($param) ? 'TRUE' : 'FALSE';
-            }
-            return parent::escape($param);
-        }
-
         private function connectionStringWithoutPassword()
         {
             return preg_replace(

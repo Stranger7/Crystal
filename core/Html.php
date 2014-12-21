@@ -23,6 +23,7 @@ class Html
 {
     /**
      * Generate HTML code for hidden input for CSRF token
+     * @param string $prefix_for_id
      * @throws \Exception
      */
     public static function CSRFToken($prefix_for_id = '')

@@ -13,7 +13,10 @@
 
 namespace core\db_drivers\query_results;
 
-
+/**
+ * Class PostgreResult
+ * @package core\db_drivers\query_results
+ */
 class PostgreResult extends QueryResult
 {
     /**
