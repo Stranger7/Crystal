@@ -16,6 +16,11 @@
         <td><?= /** @var int $line */
             $line ?></td>
     </tr>
+    <tr>
+        <td style="vertical-align: top">Trace:</td>
+        <td><pre><?= /** @var string $trace */
+                $trace ?></pre></td>
+    </tr>
 </table>
 </body>
 </html>
