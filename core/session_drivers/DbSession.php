@@ -112,7 +112,7 @@ class DbSession extends Session
             return false;
         }
         $row = $this->db
-            ->select('*')
+            ->select()
             ->from($this->table_name)
             ->where('id = ?', $this->id)
             ->run()->row();

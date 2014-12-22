@@ -179,7 +179,7 @@ abstract class Session
                 $this->request->removeCookie($this->cookie_name);
                 $this->destroy();
                 App::logger()->debug('Session destroyed with cookie "' . $this->cookie_name . '"');
-                return false;
+                return $this->create();
             }
             $this->is_live = true;
             return true;
