@@ -50,7 +50,7 @@ class Config
             App::failure(App::INI_FILE_NOT_FOUND, "Can't load INI file");
         }
 
-        $this->items = parse_ini_file($filename, true);
+        $this->items = parse_ini_file($filename, true, INI_SCANNER_RAW);
         if ($this->items === false)
         {
             App::failure(App::INI_FILE_NOT_PARSED, "Can't parse INI file");
