@@ -17,25 +17,6 @@ namespace core\db_drivers\sql_builders;
 class PostgreSQLBuilder extends SqlBuilder
 {
     /**
-     * @var mixed
-     *
-     * Name of id field
-     */
-    protected $id_field_name;
-
-    /**
-     * @param string $table_name
-     * @param array $data
-     * @return $this
-     */
-    public function insert($table_name, $data, $id)
-    {
-        parent::insert($table_name, $data);
-        $this->id_field_name = $id;
-        return $this;
-    }
-
-    /**
      * @return string
      */
     protected function insertPattern()

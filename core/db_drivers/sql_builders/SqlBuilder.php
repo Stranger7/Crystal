@@ -115,6 +115,17 @@ abstract class SqlBuilder
     protected $db;
 
     /**
+     * @var mixed
+     *
+     * Name of id field
+     */
+    protected $id_field_name;
+
+    /*===============================================================*/
+    /*                 I M P L E M E N T A T I O N                   */
+    /*===============================================================*/
+
+    /**
      * @return SqlBuilder
      */
     public function __construct()
@@ -201,13 +212,15 @@ abstract class SqlBuilder
     /**
      * @param string $table_name
      * @param array $data
-     * @return \core\db_drivers\sql_builders\SqlBuilder
+     * @param string $id - field name of identifier
+     * @return SqlBuilder
      */
-    public function insert($table_name, $data)
+    public function insert($table_name, $data, $id = '')
     {
         $this->query_type = self::INSERT_QUERY;
         $this->table_name = $table_name;
         $this->ins_upd_data = $data;
+        $this->id_field_name = $id;
         return $this;
     }
 
@@ -297,6 +310,7 @@ abstract class SqlBuilder
      */
     public function select($fields = [])
     {
+        $this->query_type = self::SELECT_QUERY;
         $this->select = array_merge($this->select, (!is_array($fields) ? [$fields] : $fields));
         return $this;
     }
