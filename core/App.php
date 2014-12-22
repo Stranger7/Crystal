@@ -110,8 +110,9 @@ class App
             @ob_end_clean();
             $error = [
                 'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+                'trace'   => $e->getTraceAsString()
             ];
             if (!Utils::isCLI())
             {
@@ -126,7 +127,7 @@ class App
             } else {
                 echo $buffer;
                 echo "In file {$error['file']} at line ({$error['line']}) error ({$e->getCode()}) occurs: "
-                    . $error['message'] . PHP_EOL;
+                    . $error['message'] . PHP_EOL . $error['trace'];
             }
         } finally {
             self::$logger->stop();
