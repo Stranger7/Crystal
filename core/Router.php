@@ -19,31 +19,20 @@ namespace core;
  */
 class Router
 {
-    private static $allowed_rest_methods = ['GET', 'POST', 'PUT', 'DELETE'];
+    const VARIABLE_PARAM_COUNT = -1;
+    const IGNORE_PARAMS        = -2;
+
+    private static $restful_methods = ['GET', 'POST', 'PUT', 'DELETE'];
 
     /**
-     * Array
-     * (
-     *   [editOrders] => Array (
-     *     [request_methods] => Array (
-     *       [0] => PUT
-     *       [1] => POST
-     *     )
-     *     [request_uri] => /orders/edit
-     *     [parameters] => Array (
-     *       [id] => 17
-     *       [group] => fruits
-     *     )
-     *     [class] => Order
-     *     [action] => edit
-     *   )
-     * )
-     * (
-     * @request_methods array. Array whose elements are in the list $allowed_rest_methods. Ex.: ['GET', 'POST']
-     * @request_uri string
-     * @parameters array
-     * @class string
-     * @action string. Method of @class
+     * @var array
+     * Example:
+     * $routes['OrderCreate'] = [
+     *     'allowed_methods' => ['POST'], // Allowed methods in Router::$restful_methods.
+     *     'request_uri'     => 'orders/create',
+     *     'class'           => '\app\web\Order',
+     *     'method'          => 'create'
+     * ]
      */
     private $routes = [];
 
@@ -83,18 +72,9 @@ class Router
      * Get all available REST methods
      * @return array
      */
-    public static function getAllowedRestMethods()
+    public static function getRestfulMethods()
     {
-        return self::$allowed_rest_methods;
-    }
-
-    /**
-     * Get all available routes
-     * @return array
-     */
-    public function getRoutes()
-    {
-        return $this->routes;
+        return self::$restful_methods;
     }
 
     /**
@@ -104,7 +84,8 @@ class Router
     public function execAction()
     {
         if (!method_exists($this->controller_name, $this->method_name)) {
-            throw new \RuntimeException("Method {$this->method_name} in class {$this->controller_name} not exist", 500);
+            throw new \RuntimeException("Method {$this->method_name} "
+                . "in class {$this->controller_name} not exist", 500);
         }
         $this->checkParameters();
         $this->controller = new $this->controller_name;
@@ -117,26 +98,32 @@ class Router
      */
     public function getActionFromURI()
     {
-        $script_path = str_replace(
-            'index.php',
+        $request_uri = str_replace(
+            ['index.php?/', 'index.php?', 'index.php'],
             '',
-            str_replace('//index.php', '/index.php', $_SERVER['SCRIPT_NAME'])
+            $_SERVER['REQUEST_URI']
         );
-        $request_uri = str_replace($script_path, '', $_SERVER['REQUEST_URI']);
-        $http_action = str_replace(['index.php?/', 'index.php?'], '', $request_uri);
-        $action = strtoupper($_SERVER['REQUEST_METHOD']) . ':/' . $http_action;
+        $script_path = str_replace('index.php', '', $_SERVER['SCRIPT_NAME']);
+        if ($request_uri === $script_path) {
+            $action = '';
+        } else {
+            $action = trim(substr($request_uri, strlen($script_path)), '/');
+        }
+        $method_action = strtoupper($_SERVER['REQUEST_METHOD']) . ':' . $action;
 
         foreach($this->routes as $route => $description)
         {
-            if (preg_match($this->createPattern($description), $action) > 0)
+            if (preg_match($description['pattern'], $method_action) > 0)
             {
-                $this->controller_name  = $description['class'];
-                $this->method_name = $description['action'];
-                $this->parameters  = $description['parameters'];
-                $this->parseParameters(
-                    ltrim($http_action, '/'),
-                    ltrim($description['request_uri'], '/')
-                );
+                $this->controller_name = $description['class'];
+                $this->method_name = $description['method'];
+                if (($description['param_count'] === self::VARIABLE_PARAM_COUNT)
+                    || ($description['param_count'] > 0))
+                {
+                    $this->parameters = $this->parseParameters($action, $description);
+                } else {
+                    $this->parameters = [];
+                }
                 return;
             }
         }
@@ -177,41 +164,20 @@ class Router
     }
 
     /**
-     * Create regexp pattern for matching with URL
+     * Extracts parameters from URL and returns array with parameters
+     *
+     * @param string $action
      * @param array $description
-     * @return string
+     * @return array
      */
-    private function createPattern($description)
+    private function parseParameters($action, $description)
     {
-         // Examples:
-         // $url = 'POST:/abcdef/1/aa';
-         // $pattern = '/^(GET|POST):\/abcdef\/\w+\/\w+$/';
-        $pattern = '/^(';
-        for($i = 0; $i < count($description['request_methods']); $i++) {
-            $pattern .= $description['request_methods'][$i] .
-                (($i == (count($description['request_methods'])-1)) ? '' : '|');
-        }
-        $pattern .= '):' . str_replace('/', '\/', $description['request_uri']);
-        for($i = 0; $i < count($description['parameters']); $i++) {
-            $pattern .= '\w+' . (($i < (count($description['parameters']) - 1)) ? '\/' : '');
-        }
-        return ($pattern . '$/i');
-    }
-
-    /**
-     * Extracts parameters from URL and fills the array with the parameters $this->parameters
-     * @param string $http_action
-     * @param string $request_uri
-     */
-    private function parseParameters($http_action, $request_uri)
-    {
-        $params = explode('/', substr($http_action, strlen($request_uri)));
-        $i = 0;
-        foreach($this->parameters as $param => $value)
+        $params = [];
+        if ($params_str = substr($action, strlen($description['request_uri'])))
         {
-            $this->parameters[$param] = (isset($params[$i]) ? $params[$i] : '');
-            $i++;
+            $params = explode('/', trim($params_str, '/'));
         }
+        return $params;
     }
 
     /**
