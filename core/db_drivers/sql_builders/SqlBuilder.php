@@ -158,15 +158,18 @@ abstract class SqlBuilder
                 break;
             case self::UPDATE_QUERY:
                 $this->binds = array_merge(array_values($this->ins_upd_data), $this->binds);
-                $qs = $this->updatePattern() . $this->compileWhereExpr();
+                $qs = $this->updatePattern()
+                    . $this->compileWhereExpr();
                 break;
             case self::DELETE_QUERY:
-                $qs = $this->deletePattern() . $this->compileWhereExpr();
+                $qs = $this->deletePattern()
+                    . $this->compileWhereExpr();
                 break;
             case self::SELECT_QUERY:
                 $qs = $this->compileSelectExpr()
                     . $this->compileFromExpr()
-                    . $this->compileWhereExpr();
+                    . $this->compileWhereExpr()
+                    . $this->compileOrderByExpr();
                 break;
             case self::CUSTOM_QUERY:
                 $qs = $this->custom_sql;
@@ -363,6 +366,20 @@ abstract class SqlBuilder
     }
 
     /**
+     * @param array $fields
+     * @return \core\db_drivers\sql_builders\SqlBuilder
+     */
+    public function orderBy($fields = [])
+    {
+        $this->order_by = array_merge($this->order_by, is_array($fields) ? $fields : [$fields]);
+        return $this;
+    }
+
+    /*===============================================================*/
+    /*                      C O M P I L E R S                        */
+    /*===============================================================*/
+
+    /**
      * @return string
      */
     protected function compileSelectExpr()
@@ -389,6 +406,18 @@ abstract class SqlBuilder
         $result = '';
         if (!empty($this->where)) {
             $result = ' WHERE ' . implode(' ', $this->where);
+        }
+        return $result;
+    }
+
+    /**
+     * @return string
+     */
+    protected function compileOrderByExpr()
+    {
+        $result = '';
+        if (!empty($this->order_by)) {
+            $result = ' ORDER BY ' . implode(', ', $this->order_by);
         }
         return $result;
     }
