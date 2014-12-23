@@ -203,7 +203,7 @@ abstract class SqlBuilder
     public function custom($sql, $binds)
     {
         $this->query_type = self::CUSTOM_QUERY;
-        $this->binds = $binds;
+        $this->binds = is_array($binds) ? $binds : [$binds];
         $this->custom_sql = $sql;
         return $this;
     }
