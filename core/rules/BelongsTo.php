@@ -67,6 +67,6 @@ class BelongsTo extends Rule
      */
     public function getMessage()
     {
-        return $this->property->get() . ' is not referenced to ' . $this->table_name;
+        return $this->property->get() . ' does not refer to ' . $this->table_name;
     }
 }
