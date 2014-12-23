@@ -134,13 +134,24 @@ abstract class Model
      */
     public function setValues($values)
     {
-        foreach ($values as $field => $value)
+        if (is_array($values) || is_object($values))
         {
-            if (isset($this->properties[$field])) {
-                /** @var Property $this->$field */
-                $this->$field->set($value);
+            foreach ($values as $property_name => $value)
+            {
+                if (isset($this->properties[$property_name])) {
+                    $this->setPropertyValue($this->properties[$property_name], $value);
+                } else {
+                    if ($property_name == $this->id->name()) {
+                        $this->id->set($value);
+                    }
+                }
             }
         }
+    }
+
+    private function setPropertyValue(Property $property, $value, $with_cast = true)
+    {
+        $property->set($value, $with_cast);
     }
 
     /*===============================================================*/
@@ -232,47 +243,24 @@ abstract class Model
     /*===============================================================*/
 
     /**
-     * @param string $select
+     * @param mixed $id
      * @return bool|\core\db_drivers\query_results\QueryResult
      */
-    public function getEntry($select = '*')
+    public function findById($id)
     {
+        $this->id->set($id);
         $row = $this->db
-            ->select($select)
+            ->select()
             ->from($this->getTableName())
             ->where($this->id->name() . ' = ? ', $this->id->get())
             ->run()->row();
-
         if ($row)
         {
-            $this->deployFromRow($row);
+            $this->setValues($row);
+        } else {
+            $this->id->clear();
         }
         return $row;
-    }
-
-    /**
-     * @param object $row
-     */
-    public function deployFromRow($row)
-    {
-        if (is_array($row) || is_object($row))
-        {
-            foreach ($row as $name => $value)
-            {
-                if (isset($this->properties[$name])) {
-                    $this->setPropertyValue($this->properties[$name], $value);
-                } else {
-                    if ($name == $this->id->name()) {
-                        $this->id->set($value);
-                    }
-                }
-            }
-        }
-    }
-
-    private function setPropertyValue(Property $property, $value, $with_cast = true)
-    {
-        $property->set($value, $with_cast);
     }
 
     /*===============================================================*/
