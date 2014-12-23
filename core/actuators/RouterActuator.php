@@ -49,16 +49,16 @@ class RouterActuator implements ActuatorInterface
      *   /orders => app\web\Order::index
      *   GET:/orders/create => app\web\Orders::create
      *
-     *   Called Orders::preview(). Allowed only PUT and POST HTTP-methods
+     *   Called Orders::edit(). Allowed only PUT and POST HTTP-methods
      *       PUT|POST:/orders/edit => app\web\Orders::edit
      *
      *   Called Orders::preview($param1, $param2)
      *       PUT|POST:/orders/preview/%1/%2 => app\web\Orders::preview
      *
-     *   Called Orders::preview(Variable number of arguments)
+     *   Called Orders::table(Variable number of arguments)
      *       /orders/list/+ => app\web\Orders::table
      *
-     *   Called Orders::preview() without parameters. The residue of the URL is ignored
+     *   Called Orders::table() without parameters. The residue of the URL is ignored
      *       /orders/list/- => app\web\Orders::table
      */
     public static function parseRoute($description)
