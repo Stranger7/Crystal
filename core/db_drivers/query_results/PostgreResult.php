@@ -32,6 +32,7 @@ class PostgreResult extends QueryResult
      */
     public function result()
     {
-        return pg_fetch_all($this->result);
+        $fetched = pg_fetch_all($this->result);
+        return ($fetched ? $fetched : []);
     }
 }
