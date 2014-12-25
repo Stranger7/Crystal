@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the Crystal package.
+ * This file is part of the Crystal framework.
  *
  * (c) Sergey Novikov (novikov.stranger@gmail.com)
  *

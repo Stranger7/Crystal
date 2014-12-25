@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the Crystal package.
+ * This file is part of the Crystal framework.
  *
  * (c) Sergey Novikov (novikov.stranger@gmail.com)
  *
@@ -116,15 +116,18 @@ class StreamLogger extends Logger
      */
     protected function openFile($filename)
     {
+        $real_path_of_file = realpath($filename);
         if (file_exists($filename) && !is_writable($filename))
         {
-            throw new \RuntimeException("log file $filename could not be written to. " .
-                "Check that appropriate permissions have been set.");
+            throw new \RuntimeException("log file $filename"
+                . " (real path: $real_path_of_file) could not be written to."
+                . " Check that appropriate permissions have been set.");
         }
         $fp = @fopen($this->filename, 'a');
         if (!$fp)
         {
-            throw new \RuntimeException("Fatal: can't create log file $filename");
+            throw new \RuntimeException("Fatal: can't create log file $filename"
+                . " (real path: $real_path_of_file)");
         }
         return $fp;
     }
