@@ -14,7 +14,6 @@
 namespace core\generic;
 
 use core\DatabaseManager;
-use core\Utils;
 
 /**
  * Class Model
@@ -121,7 +120,7 @@ abstract class Model
      */
     private function getPropertyClass($type)
     {
-        $class_name = '\\core\\property_types\\' . Utils::toCamelCase($type);
+        $class_name = '\\core\\property_types\\' . $type;
         if (!class_exists($class_name)) {
             throw new \RuntimeException("Invalid property type: {$type}");
         }
@@ -174,7 +173,8 @@ abstract class Model
             $this->id->set(
                 $this->db->insert(
                     $this->getTableName(),
-                    $this->createParamArray()
+                    $this->createParamArray(),
+                    $this->id->name()
                 )
             );
             return $this->afterCreate();
@@ -337,6 +337,9 @@ abstract class Model
     private function createParamArray()
     {
         $data = [];
+        if ($this->id->initialized()) {
+            $data[$this->id->name()] = $this->id->preparedForDb();
+        }
         /** @var Property $property */
         foreach($this->properties as $name => $property)
         {
