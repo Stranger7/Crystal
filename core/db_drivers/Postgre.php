@@ -37,6 +37,11 @@ namespace core\db_drivers
          */
         private $connect_type = 0;
 
+        /**
+         * @var string
+         */
+        private $options = '';
+
         public function __construct()
         {
             parent::__construct();
@@ -66,19 +71,48 @@ namespace core\db_drivers
         }
 
         /**
+         * Close connection
+         * @return bool
+         */
+        public function disconnect()
+        {
+            if ($this->conn) {
+                return pg_close($this->conn);
+            }
+            return false;
+        }
+
+        /**
          * @return string
          */
         public function getConnectionString()
         {
+            if (empty($this->connection_string)) {
+                $this->tryMakeConnectionString();
+            }
             return $this->connection_string;
+        }
+
+        private function tryMakeConnectionString()
+        {
+            $a = [];
+            if (!empty($this->getHost()))     $a[] = "host={$this->getHost()}";
+            if (!empty($this->getPort()))     $a[] = "port={$this->getPort()}";
+            if (!empty($this->getDatabase())) $a[] = "dbname={$this->getDatabase()}";
+            if (!empty($this->getUsername())) $a[] = "user={$this->getUsername()}";
+            if (!empty($this->getPassword())) $a[] = "password={$this->getPassword()}";
+            if (!empty($this->getOptions()))  $a[] = "options='{$this->getOptions()}'";
+            $this->connection_string = implode(' ', $a);
         }
 
         /**
          * @param string $connection_string
+         * @return DbDriver
          */
         public function setConnectionString($connection_string)
         {
             $this->connection_string = $connection_string;
+            return $this;
         }
 
         /**
@@ -91,10 +125,30 @@ namespace core\db_drivers
 
         /**
          * @param int $connect_type
+         * @return DbDriver
          */
         public function setConnectType($connect_type)
         {
             $this->connect_type = intval($connect_type);
+            return $this;
+        }
+
+        /**
+         * @param string $options
+         * @return DbDriver
+         */
+        public function setOptions($options)
+        {
+            $this->options = $options;
+            return $this;
+        }
+
+        /**
+         * @return string
+         */
+        public function getOptions()
+        {
+            return $this->options;
         }
 
         /*===============================================================*/

@@ -20,6 +20,13 @@ abstract class DbDriver
      */
     protected $conn = null;
 
+    private $host = '';
+    private $port = '';
+    private $socket = '';
+    private $username = '';
+    private $password = '';
+    private $database = '';
+
     /*===============================================================*/
     /*                         M E T H O D S                         */
     /*===============================================================*/
@@ -30,6 +37,120 @@ abstract class DbDriver
      * Create connection with database
      */
     abstract public function connect();
+
+    /**
+     * Close connection
+     * @return bool
+     */
+    abstract public function disconnect();
+
+    /**
+     * @return string
+     */
+    public function getHost()
+    {
+        return $this->host;
+    }
+
+    /**
+     * @param string $host
+     * @return DbDriver
+     */
+    public function setHost($host)
+    {
+        $this->host = $host;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPort()
+    {
+        return $this->port;
+    }
+
+    /**
+     * @param string $port
+     * @return DbDriver
+     */
+    public function setPort($port)
+    {
+        $this->port = $port;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    /**
+     * @param string $username
+     * @return DbDriver
+     */
+    public function setUsername($username)
+    {
+        $this->username = $username;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPassword()
+    {
+        return $this->password;
+    }
+
+    /**
+     * @param string $password
+     * @return DbDriver
+     */
+    public function setPassword($password)
+    {
+        $this->password = $password;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDatabase()
+    {
+        return $this->database;
+    }
+
+    /**
+     * @param string $database
+     * @return DbDriver
+     */
+    public function setDatabase($database)
+    {
+        $this->database = $database;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSocket()
+    {
+        return $this->socket;
+    }
+
+    /**
+     * @param string $socket
+     * @return DbDriver
+     */
+    public function setSocket($socket)
+    {
+        $this->socket = $socket;
+        return $this;
+    }
 
     /**
      * @return resource|\MySQLi

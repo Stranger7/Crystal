@@ -37,13 +37,6 @@ use core\generic\DbDriver;
  */
 class MySQLi extends DbDriver
 {
-    private $host = '';
-    private $port = '';
-    private $username = '';
-    private $password = '';
-    private $database = '';
-    private $socket = '';
-
     public function __construct()
     {
         parent::__construct();
@@ -82,99 +75,15 @@ class MySQLi extends DbDriver
     }
 
     /**
-     * @return string
+     * Close connection
+     * @return bool
      */
-    public function getHost()
+    public function disconnect()
     {
-        return $this->host;
-    }
-
-    /**
-     * @param string $host
-     */
-    public function setHost($host)
-    {
-        $this->host = $host;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPort()
-    {
-        return $this->port;
-    }
-
-    /**
-     * @param string $port
-     */
-    public function setPort($port)
-    {
-        $this->port = $port;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUsername()
-    {
-        return $this->username;
-    }
-
-    /**
-     * @param string $username
-     */
-    public function setUsername($username)
-    {
-        $this->username = $username;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPassword()
-    {
-        return $this->password;
-    }
-
-    /**
-     * @param string $password
-     */
-    public function setPassword($password)
-    {
-        $this->password = $password;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDatabase()
-    {
-        return $this->database;
-    }
-
-    /**
-     * @param string $database
-     */
-    public function setDatabase($database)
-    {
-        $this->database = $database;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSocket()
-    {
-        return $this->socket;
-    }
-
-    /**
-     * @param string $socket
-     */
-    public function setSocket($socket)
-    {
-        $this->socket = $socket;
+        if ($this->conn) {
+            return $this->conn->close();
+        }
+        return false;
     }
 
     /*===============================================================*/
