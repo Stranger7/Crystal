@@ -127,7 +127,7 @@ class App
             } else {
                 echo $buffer;
                 echo "In file {$error['file']} at line ({$error['line']}) error ({$e->getCode()}) occurs: "
-                    . $error['message'] . PHP_EOL . $error['trace'];
+                    . $error['message'] . PHP_EOL . $error['trace']  . PHP_EOL;
             }
         } finally {
             self::$logger->stop();

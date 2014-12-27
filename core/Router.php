@@ -193,7 +193,7 @@ class Router
      */
     public function setControllerName($controller_name)
     {
-        $this->controller_name = $controller_name;
+        $this->controller_name = str_replace('/', '\\', $controller_name);
     }
 
     /**
