@@ -246,9 +246,14 @@ abstract class Model
      * @param mixed $id
      * @return bool|\core\db_drivers\query_results\QueryResult
      */
-    public function findById($id)
+    public function findById($id = Property::NOT_INITIALIZED)
     {
-        $this->id->set($id);
+        if ($id !== Property::NOT_INITIALIZED) {
+            $this->id->set($id);
+        }
+        if (!$this->id->initialized()) {
+            return false;
+        }
         $row = $this->db
             ->select()
             ->from($this->getTableName())
@@ -260,6 +265,46 @@ abstract class Model
             $this->id->clear();
         }
         return $row;
+    }
+
+    /**
+     * Checking the existence of records with specified identifier
+     *
+     * @param mixed $id
+     * @return bool
+     */
+    public function exist($id = Property::NOT_INITIALIZED)
+    {
+        if ($id === Property::NOT_INITIALIZED) {
+            if ($this->id->initialized()) {
+                $id = $this->id->get();
+            } else {
+                return false;
+            }
+        }
+        return $this->db
+            ->select()
+            ->from($this->getTableName())
+            ->where($this->id->name() . ' = ? ', $id)
+            ->run()->row();
+    }
+
+    /*===============================================================*/
+    /*                           S A V E                             */
+    /*===============================================================*/
+
+    /**
+     * If a record exists, it is updated, otherwise the record is created
+     *
+     * @return bool
+     */
+    public function save()
+    {
+        if ($this->exist()) {
+            return $this->update();
+        } else {
+            return $this->create();
+        }
     }
 
     /*===============================================================*/
