@@ -273,7 +273,7 @@ abstract class Model
      * @param mixed $id
      * @return bool
      */
-    public function exist($id = Property::NOT_INITIALIZED)
+    public function existWithId($id = Property::NOT_INITIALIZED)
     {
         if ($id === Property::NOT_INITIALIZED) {
             if ($this->id->initialized()) {
@@ -300,7 +300,7 @@ abstract class Model
      */
     public function save()
     {
-        if ($this->exist()) {
+        if ($this->existWithId()) {
             return $this->update();
         } else {
             return $this->create();
