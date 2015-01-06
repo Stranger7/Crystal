@@ -16,8 +16,9 @@ namespace core\actuators;
 use core\App;
 use core\Config;
 use core\generic\Logger;
+use core\interfaces\Actuator;
 
-class LoggerActuator implements ActuatorInterface
+class LoggerActuator implements Actuator
 {
     /**
      * @return Logger

@@ -15,13 +15,14 @@ namespace core\actuators;
 
 use core\App;
 use core\Config;
+use core\interfaces\Actuator;
 use core\Router;
 
 /**
  * Static Class RouterInitializer
  * @package core\loaders
  */
-class RouterActuator implements ActuatorInterface
+class RouterActuator implements Actuator
 {
     /**
      * Parse config-file and creating of route array

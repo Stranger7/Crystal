@@ -15,14 +15,15 @@ namespace core\actuators;
 
 use core\App;
 use core\Config;
-use core\DatabaseManager;
+use core\DbManager;
+use core\interfaces\Actuator;
 use core\Utils;
 
 /**
  * Static Class DBInitializer
  * @package core\loaders
  */
-class DBActuator implements ActuatorInterface
+class DBActuator implements Actuator
 {
     /**
      * Scan config file, search section with prefix "db:" and do DB driver initialization
@@ -48,14 +49,10 @@ class DBActuator implements ActuatorInterface
         $alias = str_replace(Config::DB_PREFIX, '', $section);
         $driver_name = 'core\\db_drivers\\' . self::getDriverName($section);
         $driver = new $driver_name;
-        $auto_connect = false;
         $default = false;
         foreach(App::config()->get($section) as $item => $value) {
             if ($item != Config::DRIVER_SIGNATURE) {
                 switch ($item) {
-                    case Config::AUTO_CONNECT_SIGNATURE:
-                        $auto_connect = Utils::boolValue($value);
-                        break;
                     case Config::DEFAULT_SIGNATURE:
                         $default = Utils::boolValue($value);
                         break;
@@ -68,15 +65,7 @@ class DBActuator implements ActuatorInterface
             }
         }
         App::logger()->debug("Database [$alias] with [$driver_name] initialized");
-        if ($auto_connect) {
-            if (method_exists($driver, 'connect')) {
-                /** @var \core\generic\DbDriver $driver */
-                $driver->connect();
-            } else {
-                throw new \LogicException("Method 'connect' not found in DB driver $driver_name", 501);
-            }
-        }
-        DatabaseManager::getInstance()->add($alias, $driver, $default);
+        DbManager::getInstance()->add($alias, $driver, $default);
     }
 
     /**
