@@ -96,10 +96,8 @@ abstract class Session
     /*                         M E T H O D S                         */
     /*===============================================================*/
 
-    public function __construct(Request $request)
+    public function __construct()
     {
-        $this->request = $request;
-
         $this->cookie_name = ($item = App::config()->get(Config::SESSION_SECTION, 'cookie_name'))
             ? $item
             : $this->cookie_name;
@@ -115,8 +113,6 @@ abstract class Session
         $this->match_ip = ($item = App::config()->get(Config::SESSION_SECTION, 'match_ip'))
             ? Utils::boolValue($item)
             : $this->match_ip;
-
-        $this->start();
     }
 
     public function __destruct()
@@ -143,10 +139,13 @@ abstract class Session
     }
 
     /**
+     * @param Request $request
      * @return bool
      */
-    protected function start()
+    public function start(Request $request)
     {
+        $this->request = $request;
+
         if ($this->id = $this->request->cookie($this->cookie_name))
         {
             $do_destroy = false;
