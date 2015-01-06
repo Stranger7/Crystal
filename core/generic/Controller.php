@@ -13,7 +13,7 @@
 
 namespace core\generic;
 
-use core\DatabaseManager;
+use core\DbManager;
 
 /**
  * Class Crystal
@@ -21,16 +21,29 @@ use core\DatabaseManager;
  */
 abstract class Controller
 {
-    public function __construct()
+    /**
+     * @var DbDriver
+     */
+    private $db = null;
+
+    public function __construct($dsn = '')
     {
+        $this->setDb($dsn);
+    }
+
+    /**
+     * @return DbDriver
+     */
+    public function db()
+    {
+        return $this->db;
     }
 
     /**
      * @param string $dsn
-     * @return DbDriver
      */
-    public function db($dsn = '')
+    public function setDb($dsn = '')
     {
-        return DatabaseManager::getInstance()->getConn($dsn);
+        $this->db = DbManager::getInstance()->getDb($dsn);
     }
 }
