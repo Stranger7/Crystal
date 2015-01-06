@@ -88,12 +88,12 @@ namespace core\db_drivers
         public function getConnectionString()
         {
             if (empty($this->connection_string)) {
-                $this->tryMakeConnectionString();
+                $this->makeConnectionString();
             }
             return $this->connection_string;
         }
 
-        private function tryMakeConnectionString()
+        private function makeConnectionString()
         {
             $a = [];
             if (!empty($this->getHost()))     $a[] = "host={$this->getHost()}";
@@ -112,6 +112,34 @@ namespace core\db_drivers
         public function setConnectionString($connection_string)
         {
             $this->connection_string = $connection_string;
+            $parts = explode(' ', $connection_string);
+            foreach($parts as $param)
+            {
+                $pair = explode('=', $param, 2);
+                $keyword = trim($pair[0]);
+                $value = ((sizeof($pair) == 2) ? trim($pair[1]) : '');
+                switch ($keyword)
+                {
+                    case 'host':
+                        $this->setHost($value);
+                        break;
+                    case 'port':
+                        $this->setPort($value);
+                        break;
+                    case 'dbname':
+                        $this->setDatabase($value);
+                        break;
+                    case 'user':
+                        $this->setUsername($value);
+                        break;
+                    case 'password':
+                        $this->setPassword($value);
+                        break;
+                    case 'options':
+                        $this->setOptions($value);
+                        break;
+                }
+            }
             return $this;
         }
 
@@ -207,6 +235,66 @@ namespace core\db_drivers
             }
 
             return $this->queryResult($result);
+        }
+
+        /**
+         * Create string of field definition
+         *
+         * @param string $field_name
+         * @param array $definition
+         * @return string
+         */
+        protected function makeFieldDefinition($field_name, $definition)
+        {
+            $result = $field_name;
+            if (empty($definition['type'])) {
+                throw new \InvalidArgumentException("Type of field $field_name not specified");
+            }
+            $type = strtoupper(trim($definition['type']));
+
+            if (!empty($definition['auto_increment'])) {
+                $type = 'SERIAL';
+            }
+            if ($type == 'SERIAL')
+            {
+                $result .= ' BIGSERIAL';
+                if (!empty($definition['primary_key'])) {
+                    $result .= ' PRIMARY KEY';
+                } else {
+                    $result .= ' UNIQUE';
+                }
+                return $result;
+            }
+            if (in_array($type, $this->bd_string_data_types)) {
+                if (!empty($definition['size']))
+                {
+                    $type = "VARCHAR({$definition['size']})";
+                } else {
+                    $type = ' TEXT';
+                }
+            } elseif (in_array($type, $this->bd_bool_data_types)) {
+                $type = 'BOOLEAN';
+            } elseif ($type == 'DATETIME') {
+                $type = 'DATE';
+            }
+            $result .= ' ' . $type;
+            if (in_array($type, $this->bd_int_data_types)) {
+                if (!empty($definition['unsigned'])) {
+                    $result .= " CHECK ($field_name > 0)";
+                }
+            }
+            if (!empty($definition['primary_key'])) {
+                $result .= ' PRIMARY KEY';
+            } elseif (!empty($definition['unique'])) {
+                $result .= ' UNIQUE';
+            }
+            if (!empty($definition['not_null'])) {
+                $result .= ' NOT NULL';
+            }
+            if (!empty($definition['default'])) {
+                $result .= ' DEFAULT ' . $definition['default'];
+            }
+            return $result;
         }
 
         /*===============================================================*/

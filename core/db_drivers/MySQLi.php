@@ -138,4 +138,62 @@ class MySQLi extends DbDriver
         }
         return (is_bool($result) ? true : $this->queryResult($result));
     }
+
+    /**
+     * Create string of field definition
+     *
+     * @param string $field_name
+     * @param array $definition
+     * @return string
+     */
+    protected function makeFieldDefinition($field_name, $definition)
+    {
+        $result = $field_name;
+        if (empty($definition['type'])) {
+            throw new \InvalidArgumentException("Type of field $field_name not specified");
+        }
+        $type = strtoupper(trim($definition['type']));
+        if ($type == 'SERIAL')
+        {
+            $result .= ' BIGINT UNSIGNED NOT NULL AUTO_INCREMENT';
+            if (!empty($definition['primary_key'])) {
+                $result .= ' PRIMARY KEY';
+            } else {
+                $result .= ' UNIQUE';
+            }
+            return $result;
+        }
+        if (in_array($type, $this->bd_string_data_types)) {
+            if (!empty($definition['size']))
+            {
+                $result .= " VARCHAR({$definition['size']})";
+            } else {
+                $result .= ' TEXT';
+            }
+        } elseif (in_array($type, $this->bd_bool_data_types)) {
+            $result .=  ' TINYINT(1)';
+        } else {
+            $result .= ' ' . $type;
+        }
+        if (in_array($type, $this->bd_int_data_types)) {
+            if (!empty($definition['auto_increment'])) {
+                $result .= ' AUTO_INCREMENT';
+            }
+            if (!empty($definition['unsigned'])) {
+                $result .= ' UNSIGNED';
+            }
+        }
+        if (!empty($definition['primary_key'])) {
+            $result .= ' PRIMARY KEY';
+        } elseif (!empty($definition['unique'])) {
+            $result .= ' UNIQUE';
+        }
+        if (!empty($definition['not_null'])) {
+            $result .= ' NOT NULL';
+        }
+        if (!empty($definition['default'])) {
+            $result .= ' DEFAULT ' . $definition['default'];
+        }
+        return $result;
+    }
 }
