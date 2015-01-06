@@ -15,9 +15,9 @@ namespace core\session_drivers;
 
 use core\App;
 use core\Config;
+use core\interfaces\CanCreateSchema;
 use core\generic\DbDriver;
 use core\generic\Session;
-use core\Request;
 
 /**
  * Class DbSession
@@ -35,7 +35,7 @@ use core\Request;
  *   PRIMARY KEY (id)
  * )
  */
-class DbSession extends Session
+class DbSession extends Session implements CanCreateSchema
 {
     /**
      * @var DbDriver
@@ -52,7 +52,7 @@ class DbSession extends Session
     /*                        M E T H O D S                          */
     /*===============================================================*/
 
-    public function __construct(Request $request, DbDriver $db)
+    public function __construct(DbDriver $db)
     {
         $this->db = $db;
         if (!($this->db instanceof DbDriver))
@@ -64,7 +64,7 @@ class DbSession extends Session
             ? $item
             : $this->table_name;
 
-        parent::__construct($request);
+        parent::__construct();
     }
 
     /**
@@ -203,5 +203,43 @@ class DbSession extends Session
     {
         $this->save();
         $this->gc();
+    }
+
+    public function createSchema(DbDriver $db = null)
+    {
+        $this->db->createTable($this->table_name, [
+            'fields' => [
+                'id' => [
+                    'type'        => 'VARCHAR',
+                    'size'        => 32,
+                    'not_null'    => true,
+                    'primary_key' => true
+                ],
+                'created' => [
+                    'type'        => 'DATETIME',
+                    'not_null'    => true,
+                ],
+                'updated' => [
+                    'type'        => 'DATETIME',
+                    'not_null'    => true,
+                ],
+                'data' => [
+                    'type'        => 'TEXT'
+                ],
+                'ip_address' => [
+                    'type'        => 'TEXT'
+                ],
+                'user_agent' => [
+                    'type'        => 'TEXT'
+                ],
+            ]
+        ]);
+        App::logger()->debug("Table {$this->table_name} created");
+    }
+
+    public function dropSchema(DbDriver $db = null)
+    {
+        $this->db->dropTable($this->table_name);
+        App::logger()->debug("Table {$this->table_name} dropped");
     }
 }
