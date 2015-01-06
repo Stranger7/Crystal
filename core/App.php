@@ -109,6 +109,7 @@ class App
             $buffer = ob_get_contents();
             @ob_end_clean();
             $error = [
+                'code'    => $e->getCode(),
                 'message' => $e->getMessage(),
                 'file'    => $e->getFile(),
                 'line'    => $e->getLine(),
@@ -122,13 +123,10 @@ class App
                 } else {
                     (new Http())->header($e->getCode());
                 }
-                echo $buffer;
-                self::showError($error);
-            } else {
-                echo $buffer;
-                echo "In file {$error['file']} at line ({$error['line']}) error ({$e->getCode()}) occurs: "
-                    . $error['message'] . PHP_EOL . $error['trace']  . PHP_EOL;
             }
+            echo $buffer;
+            self::showError($error);
+            self::logger()->error("{$error['file']}({$error['line']}): {$error['message']}");
         } finally {
             self::$logger->stop();
         }
@@ -165,7 +163,17 @@ class App
      */
     public static function showError($error)
     {
-        self::view('common/error', $error);
+        if (Utils::isCLI()) {
+            if (self::mode() == 'development') {
+                echo "In file {$error['file']} at line ({$error['line']})"
+                    . " error ({$error['code']}) occurred: "
+                    . $error['message'] . PHP_EOL . $error['trace']  . PHP_EOL;
+            } else {
+                echo $error['message'] . PHP_EOL;
+            }
+        } else {
+            self::view('common/error', $error);
+        }
     }
 
     /**
