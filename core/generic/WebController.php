@@ -38,9 +38,9 @@ abstract class WebController extends Controller
      */
     private $http;
 
-    public function __construct()
+    public function __construct($dsn = '')
     {
-        parent::__construct();
+        parent::__construct($dsn);
         $this->http = new Http();
         $this->security = new Security();
         $this->request = new Request($this->security);
