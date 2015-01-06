@@ -12,6 +12,7 @@
  */
 
 namespace core;
+
 use core\generic\WebController;
 
 /**
@@ -42,7 +43,7 @@ class Html
     public static function js($list = [])
     {
         foreach ($list as $js) {
-                echo self::indent() . '<script type="text/javascript" src="' . Utils::url($js) . '"></script>' . PHP_EOL;
+            echo self::indent() . '<script type="text/javascript" src="' . Utils::url($js) . '"></script>' . PHP_EOL;
         }
     }
 
