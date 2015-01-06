@@ -32,7 +32,6 @@ class Config
     // database section signatures
     const DB_PREFIX                 = 'db:';
     const DRIVER_SIGNATURE          = 'driver';
-    const AUTO_CONNECT_SIGNATURE    = 'auto_connect';
     const DEFAULT_SIGNATURE         = 'default';
 
     private $items;
