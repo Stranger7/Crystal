@@ -42,6 +42,13 @@ abstract class Property
     protected $default = self::NOT_INITIALIZED;
 
     /**
+     * Used in schema create function
+     *
+     * @var string|null
+     */
+    protected $db_default = self::NOT_INITIALIZED;
+
+    /**
      * if the read-only property, it is not used in the recording operations of the database
      * @var bool
      */
@@ -70,6 +77,11 @@ abstract class Property
         $this->name($name);
         return $this;
     }
+
+    /**
+     * @return string
+     */
+    abstract public function type();
 
     /**
      * @param mixed $value
@@ -129,6 +141,20 @@ abstract class Property
     {
         $this->default = $default;
         return $this;
+    }
+
+    /**
+     * @param null|string $db_default
+     * @return \core\generic\Property|string
+     */
+    public function dbDefault($db_default = self::NOT_INITIALIZED)
+    {
+        if ($db_default === self::NOT_INITIALIZED) {
+            return $this->db_default;
+        } else {
+            $this->db_default = strval($db_default);
+            return $this;
+        }
     }
 
     /**
@@ -210,6 +236,11 @@ abstract class Property
      */
     public function rule(Rule $rule)
     {
+        $type = '\\' . get_class($rule);
+        if ($this->hasRule($type)) {
+            throw new \RuntimeException('Rule ' . $type
+                . ' already assigned to property ' . $this->name());
+        }
         $rule->forProperty($this);
         $this->rules[] = $rule;
         return $this;
@@ -259,5 +290,22 @@ abstract class Property
     public function getErrors()
     {
         return $this->errors;
+    }
+
+    /**
+     * Checks whether the property has a specified rule
+     *
+     * @param string $type
+     * @return bool|Rule
+     */
+    public function hasRule($type)
+    {
+        foreach($this->rules as $rule)
+        {
+            if ($rule instanceof $type) {
+                return $rule;
+            }
+        }
+        return false;
     }
 }

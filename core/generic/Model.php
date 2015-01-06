@@ -13,13 +13,15 @@
 
 namespace core\generic;
 
-use core\DatabaseManager;
+use core\DbManager;
+use core\interfaces\CanCreateSchema;
+use core\rules\IsUniqueComposite;
 
 /**
  * Class Model
  * @package core\generic
  */
-abstract class Model
+abstract class Model implements CanCreateSchema
 {
     /**
      * @var DbDriver
@@ -46,6 +48,11 @@ abstract class Model
      */
     private $errors = [];
 
+    /**
+     * @var array
+     */
+    private $indexes = [];
+
     /*===============================================================*/
     /*                  I N I T I A L I Z A T I O N                  */
     /*===============================================================*/
@@ -66,7 +73,7 @@ abstract class Model
      */
     public function __construct($dsn = '')
     {
-        $this->db = DatabaseManager::getInstance()->getConn($dsn);
+        $this->db = DbManager::getInstance()->getDb($dsn);
     }
 
     /**
@@ -94,7 +101,7 @@ abstract class Model
      */
     protected function property($name, $type)
     {
-        $class_name = $this->getPropertyClass($type);
+        $class_name = $this->makePropertyClass($type);
         $this->$name = new $class_name($name);
         $this->properties[$name] = &$this->$name;
         return $this->$name;
@@ -106,9 +113,9 @@ abstract class Model
      * @param string $type
      * @return Property
      */
-    protected function identifier($name, $type)
+    protected function identifier($name, $type = 'Serial')
     {
-        $class_name = $this->getPropertyClass($type);
+        $class_name = $this->makePropertyClass($type);
         $this->id = new $class_name($name);
         return $this->id;
     }
@@ -118,13 +125,83 @@ abstract class Model
      * @param string $type
      * @return string
      */
-    private function getPropertyClass($type)
+    private function makePropertyClass($type)
     {
         $class_name = '\\core\\property_types\\' . $type;
         if (!class_exists($class_name)) {
             throw new \RuntimeException("Invalid property type: {$type}");
         }
         return $class_name;
+    }
+
+    /**
+     * Add simple index
+     *
+     * @param array $fields
+     */
+    protected function index($fields)
+    {
+        $this->addIndex($fields, DbDriver::INDEX);
+    }
+
+    /**
+     * Add unique index
+     *
+     * @param array $fields
+     */
+    protected function uniqueIndex($fields)
+    {
+        $this->addIndex($fields, DbDriver::UNIQUE_INDEX);
+    }
+
+    /**
+     * Add unique index
+     *
+     * @param array $fields
+     */
+    protected function primaryKey($fields)
+    {
+        foreach($this->indexes as $index)
+        {
+            if ($index['type'] == DbDriver::PRIMARY_KEY) {
+                throw new \RuntimeException('PRIMARY KEY already defined');
+            }
+        }
+        $this->addIndex($fields, DbDriver::PRIMARY_KEY);
+    }
+
+    /**
+     * @param array $fields
+     * @param string $type: INDEX | UNIQUE INDEX | PRIMARY KEY
+     */
+    private function addIndex($fields, $type)
+    {
+        if (!is_array($fields)) {
+            $fields = [$fields];
+        }
+        if (!$this->instanceOfProperty($fields)) {
+            throw new \RuntimeException('Fields of index does not correspond'
+                .' to the type of \core\generic\Property');
+        }
+        $this->indexes[] = [
+            'type'   => $type,
+            'fields' => $fields
+        ];
+    }
+
+    /**
+     * @param array $properties
+     * @return bool
+     */
+    private function instanceOfProperty($properties)
+    {
+        foreach($properties as $property)
+        {
+            if (!($property instanceof Property)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -330,6 +407,23 @@ abstract class Model
                 }
             }
         }
+
+        // check composite unique indexes
+        foreach($this->indexes as $index)
+        {
+            if ($index['type'] == DbDriver::UNIQUE_INDEX) {
+                $validator = new IsUniqueComposite(
+                    $this->db,
+                    $this->getTableName(),
+                    $this->id,
+                    $index['fields']
+                );
+                if (!$validator->isValid()) {
+                    $this->addError($validator->getFields(), $validator->getMessage());
+                }
+                $validator = null;
+            }
+        }
         return empty($this->errors);
     }
 
@@ -407,5 +501,169 @@ abstract class Model
         if ($idHasValueCheck && !$this->id->initialized()) {
             throw new \LogicException('Id is not set', 501);
         }
+    }
+
+    /*===============================================================*/
+    /*                S C H E M A    F U N C T I O N S               */
+    /*===============================================================*/
+
+    /**
+     * @param DbDriver|null $db
+     * @return bool
+     */
+    public function createSchema(DbDriver $db = null)
+    {
+        // Create table. Also create primary key, unique indexes and references
+        $this->db->createTable($this->getTableName(), [
+            'fields'       => $this->makeFieldDescriptors(),
+            'primary_key'  => $this->makePrimaryKeyDescriptor(),
+            'unique'       => $this->makeUniqueKeyDescriptors(),
+            'foreign_keys' => $this->makeForeignKeyDescriptors()
+        ]);
+
+        // Create indexes
+        foreach($this->indexes as $index)
+        {
+            if ($index['type'] == DbDriver::INDEX) {
+                $fields = [];
+                array_walk($index['fields'], function(Property $property) use (&$fields) {
+                    $fields[] = $property->name();
+                });
+                $this->db->createIndex($this->getTableName(), $fields);
+            }
+        }
+    }
+
+    /**
+     * @param DbDriver|null $db
+     * @return bool
+     */
+    public function dropSchema(DbDriver $db = null)
+    {
+        $this->db->dropTable($this->getTableName());
+    }
+
+    /**
+     * @return array
+     */
+    private function makeFieldDescriptors()
+    {
+        $descriptors = [];
+        if (!empty($this->id) && !$this->id->isReadOnly()) {
+            $descriptors[$this->id->name()] = $this->makeFieldDescriptor($this->id);
+        }
+        /** @var Property $property */
+        foreach($this->properties as $name => $property)
+        {
+            if ($property->isReadOnly()) continue;
+            $descriptors[$name] = $this->makeFieldDescriptor($property);
+        }
+        return $descriptors;
+    }
+
+    /**
+     * @param Property $property
+     * @return array
+     */
+    private function makeFieldDescriptor(Property $property)
+    {
+        $descriptor = [];
+        $descriptor['type'] = $property->type();
+
+        // Automatically assign the primary key when the primary key is not defined clearly
+        if ($descriptor['type'] == 'SERIAL')
+        {
+            $primary_key_specified = false;
+            foreach($this->indexes as $index)
+            {
+                if ($index['type'] == DbDriver::PRIMARY_KEY) {
+                    $primary_key_specified = true;
+                    break;
+                }
+            }
+            if (!$primary_key_specified) {
+                $descriptor['primary_key'] = true;
+            }
+        } else {
+            if ($property->hasRule('\core\rules\IsUnique')) {
+                $descriptor['unique'] = true;
+            }
+        }
+        if ($rule = $property->hasRule('\core\rules\MaxLen')) {
+            /** @var \core\rules\MaxLen $rule */
+            $descriptor['size'] = $rule->getMaxLen();
+        }
+        if ($property->hasRule('\core\rules\IsNotNull')
+            || $property->hasRule('\core\rules\IsRequired')
+            || $property->hasRule('\core\rules\IsNotZero')) {
+            $descriptor['not_null'] = true;
+        }
+        if ($property->hasRule('\core\rules\IsUnsigned')) {
+            $descriptor['unsigned'] = true;
+        }
+        if (!empty($property->dbDefault())) {
+            $descriptor['default'] = $property->dbDefault();
+        }
+        return $descriptor;
+    }
+
+    /**
+     * @return array
+     */
+    private function makePrimaryKeyDescriptor()
+    {
+        $result = [];
+        foreach($this->indexes as $index)
+        {
+            if ($index['type'] == DbDriver::PRIMARY_KEY) {
+                array_walk($index['fields'], function(Property $property) use (&$result) {
+                    $result[] = $property->name();
+                });
+                break;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * @return array
+     */
+    private function makeUniqueKeyDescriptors()
+    {
+        $result = [];
+        foreach($this->indexes as $index)
+        {
+            if ($index['type'] == DbDriver::UNIQUE_INDEX) {
+                $fields = [];
+                array_walk($index['fields'], function(Property $property) use (&$fields) {
+                    $fields[] = $property->name();
+                });
+                $result[] = $fields;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * @return array
+     */
+    private function makeForeignKeyDescriptors()
+    {
+        $result = [];
+        /** @var Property $property */
+        foreach($this->properties as $name => $property)
+        {
+            if ($property->isReadOnly()) continue;
+            /** @var \core\rules\BelongsTo $rule */
+            if ($rule = $property->hasRule('\core\rules\BelongsTo')) {
+                $foreign_key['columns'] = [$property->name()];
+                $foreign_key['ref_table'] = $rule->getReferencedTable();
+                $foreign_key['ref_columns'] = [$rule->getReferencedColumn()];
+                $foreign_key['on_update'] = $rule->getOnUpdate();
+                $foreign_key['on_delete'] = $rule->getOnDelete();
+                $result[] = $foreign_key;
+            }
+        }
+        return $result;
     }
 }
