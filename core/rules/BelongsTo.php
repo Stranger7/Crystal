@@ -30,24 +30,42 @@ class BelongsTo extends Rule
     /**
      * @var string
      */
-    protected $table_name;
+    protected $referenced_table;
 
     /**
      * @var string
      */
-    protected $referenced_to;
+    protected $referenced_column;
+
+    /**
+     * @var string
+     */
+    protected $on_update = 'RESTRICT';
+
+    /**
+     * @var string
+     */
+    protected $on_delete = 'RESTRICT';
 
     /**
      * @param DbDriver $db
-     * @param string $table_name
-     * @param string $referenced_to
+     * @param string $referenced_table
+     * @param string $referenced_column
+     * @param string $on_update
+     * @param string $on_delete
      */
-    public function __construct(DbDriver $db, $table_name, $referenced_to)
+    public function __construct(DbDriver $db,
+                                $referenced_table,
+                                $referenced_column,
+                                $on_update = 'RESTRICT',
+                                $on_delete = 'RESTRICT')
     {
         parent::__construct();
         $this->db = $db;
-        $this->table_name = $table_name;
-        $this->referenced_to = $referenced_to;
+        $this->referenced_table = $referenced_table;
+        $this->referenced_column = $referenced_column;
+        $this->on_update = $on_update;
+        $this->on_delete = $on_delete;
     }
 
     /**
@@ -57,8 +75,8 @@ class BelongsTo extends Rule
     {
         return $this->db
             ->select()
-            ->from($this->table_name)
-            ->where("{$this->referenced_to} = ?", $this->property->preparedForDb())
+            ->from($this->referenced_table)
+            ->where("{$this->referenced_column} = ?", $this->property->preparedForDb())
             ->run()->row();
     }
 
@@ -67,6 +85,38 @@ class BelongsTo extends Rule
      */
     public function getMessage()
     {
-        return $this->property->get() . ' does not refer to ' . $this->table_name;
+        return $this->property->get() . ' does not refer to ' . $this->referenced_table;
+    }
+
+    /**
+     * @return string
+     */
+    public function getReferencedTable()
+    {
+        return $this->referenced_table;
+    }
+
+    /**
+     * @return string
+     */
+    public function getReferencedColumn()
+    {
+        return $this->referenced_column;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOnUpdate()
+    {
+        return $this->on_update;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOnDelete()
+    {
+        return $this->on_delete;
     }
 }

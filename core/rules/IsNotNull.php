@@ -7,8 +7,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * Date: 17.12.2014
- * Time: 1:33
+ * Date: 06.01.2015
+ * Time: 13:37
  */
 
 namespace core\rules;
@@ -16,31 +16,17 @@ namespace core\rules;
 use core\generic\Rule;
 
 /**
- * Class MoreThen
+ * Class IsNotNull
  * @package core\rules
  */
-class MoreThen extends Rule
+class IsNotNull extends Rule
 {
-    /**
-     * @var mixed
-     */
-    protected $min;
-
-    /**
-     * @param mixed $min
-     */
-    public function __construct($min)
-    {
-        parent::__construct();
-        $this->min = $min;
-    }
-
     /**
      * @return bool
      */
     public function isValid()
     {
-        return ($this->property->get() > $this->min);
+        return ($this->property->initialized());
     }
 
     /**
@@ -48,6 +34,6 @@ class MoreThen extends Rule
      */
     public function getMessage()
     {
-        return $this->property->name() . " less then {$this->min} or equal";
+        return $this->property->title() . ' can\'t be null';
     }
 }

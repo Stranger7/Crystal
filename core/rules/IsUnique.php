@@ -57,12 +57,12 @@ class IsUnique extends Rule
     public function isValid()
     {
         $qb = $this->db
-            ->select('*')
+            ->select('1')
             ->from($this->table_name)
-            ->where("{$this->property->name()} = ?", $this->property->get());
+            ->where("{$this->property->name()} = ?", $this->property->preparedForDb());
         if (!$this->id->isEmpty())
         {
-            $qb->where("{$this->id->name()} <> ?", $this->id->get());
+            $qb->where("{$this->id->name()} <> ?", $this->id->preparedForDb());
         }
         return !$qb->run()->row();
     }
