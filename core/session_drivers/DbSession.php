@@ -22,18 +22,6 @@ use core\generic\Session;
 /**
  * Class DbSession
  * @package core\session_drivers
- *
- * SQL-instruction for table creating:
- *
- * CREATE TABLE sessions (
- *   id VARCHAR(32) NOT NULL,
- *   created DATETIME NOT NULL,
- *   updated DATETIME NOT NULL,
- *   data text,
- *   ip_address text,
- *   user_agent text,
- *   PRIMARY KEY (id)
- * )
  */
 class DbSession extends Session implements CanCreateSchema
 {
