@@ -34,6 +34,10 @@ class Password extends String
         return crypt($string, $salt);
     }
 
+    /**
+     * @param $password
+     * @return bool
+     */
     public function verify($password)
     {
         return ($this->get() === self::crypt($password, $this->salt));

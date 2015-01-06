@@ -19,11 +19,26 @@ namespace core\property_types;
  */
 class Date extends DateTime
 {
+    /**
+     * @return string
+     */
+    public function type()
+    {
+        return 'DATE';
+    }
+
+    /**
+     * @param string $format
+     * @return bool|string
+     */
     public function asString($format = 'd.m.Y')
     {
         return date($format, $this->value);
     }
 
+    /**
+     * @return bool|string
+     */
     public function preparedForDb()
     {
         return date('Y-m-d', $this->value);

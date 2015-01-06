@@ -21,11 +21,26 @@ use core\generic\Property;
  */
 class DateTime extends Property
 {
+    /**
+     * @return string
+     */
+    public function type()
+    {
+        return 'DATETIME';
+    }
+
+    /**
+     * @param string $format
+     * @return bool|string
+     */
     public function asString($format = 'd.m.Y H:i:s')
     {
         return date($format, $this->value);
     }
 
+    /**
+     * @return bool|string
+     */
     public function preparedForDb()
     {
         return date('Y-m-d H:i:s', $this->value);

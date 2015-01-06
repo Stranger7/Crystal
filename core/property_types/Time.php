@@ -15,11 +15,18 @@ namespace core\property_types;
 
 class Time extends DateTime
 {
+    /**
+     * @param string $format
+     * @return bool|string
+     */
     public function asString($format = 'H:i:s')
     {
         return date($format, $this->value);
     }
 
+    /**
+     * @return bool|string
+     */
     public function preparedForDb()
     {
         return date('H:i:s', $this->value);

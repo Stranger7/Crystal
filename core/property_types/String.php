@@ -21,16 +21,34 @@ use core\generic\Property;
  */
 class String extends Property
 {
+    /**
+     * @return string
+     */
+    public function type()
+    {
+        return 'TEXT';
+    }
+
+    /**
+     * @param mixed|null $format
+     * @return mixed
+     */
     public function asString($format = self::NOT_INITIALIZED)
     {
         return $this->value;
     }
 
+    /**
+     * @return mixed
+     */
     public function preparedForDb()
     {
         return $this->value;
     }
 
+    /**
+     * @return bool
+     */
     public function isEmpty()
     {
         return empty($this->value);

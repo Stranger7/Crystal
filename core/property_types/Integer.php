@@ -21,11 +21,26 @@ use core\generic\Property;
  */
 class Integer extends Property
 {
+    /**
+     * @return string
+     */
+    public function type()
+    {
+        return 'INT';
+    }
+
+    /**
+     * @param mixed|null $format
+     * @return string
+     */
     public function asString($format = self::NOT_INITIALIZED)
     {
         return number_format($this->value);
     }
 
+    /**
+     * @return string
+     */
     public function preparedForDb()
     {
         return strval($this->value);

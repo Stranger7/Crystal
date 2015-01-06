@@ -25,6 +25,14 @@ class Bool extends Property
     private $format = ['TRUE', 'FALSE'];
 
     /**
+     * @return string
+     */
+    public function type()
+    {
+        return 'BOOL';
+    }
+
+    /**
      * @param array $format
      * @return string
      */
