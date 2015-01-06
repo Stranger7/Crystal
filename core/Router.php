@@ -44,6 +44,11 @@ class Router
     /**
      * @var string
      */
+    private $dsn = '';
+
+    /**
+     * @var string
+     */
     private $method_name = '';
 
     /**
@@ -88,7 +93,7 @@ class Router
                 . "in class {$this->controller_name} not exist", 500);
         }
         $this->checkParameters();
-        $this->controller = new $this->controller_name;
+        $this->controller = new $this->controller_name($this->dsn);
         call_user_func_array([$this->controller, $this->method_name], $this->parameters);
     }
 
@@ -137,30 +142,45 @@ class Router
      */
     public function getActionFromCommandLine()
     {
-        if (isset($_SERVER['argv']) && count($_SERVER['argv']) >= 3)
-        {
-            $params = $_SERVER['argv'];
-            $this->setControllerName($params[1]);
-            $this->setMethodName($params[2]);
-            array_shift($params);
-            array_shift($params);
-            array_shift($params);
-            $method_params = [];
-            foreach($params as $param)
-            {
-                $a = explode('=', $param);
-                if (sizeof($a) < 2) {
-                    App::failure(400, $this->makeErrorMessageForInvalidParamsCLI());
-                }
-                $method_params[$a[0]] = $a[1];
-            }
-
-            $this->setParameters($method_params);
-        } else {
-            $message = 'Not enough parameters.' . PHP_EOL . 'Syntax:'
-                . ' php console.php controller methods [param1=value1 [ ... ]]' . PHP_EOL;
-            App::failure(400, $message);
+        if (!isset($_SERVER['argv'])) {
+            App::failure(500, 'No parameters. $_SERVER[\'argv\'] is empty. o_O');
         }
+        $params = $_SERVER['argv'];
+        if (count($params) < 3) {
+            App::failure(400, $this->makeErrorMessageForInvalidParamsCLI());
+        }
+        array_shift($params);
+
+        // set controller
+        $this->setControllerName($params[0]);
+        array_shift($params);
+
+        // set DSN and Method
+        if (strpos($params[0], '--dsn') === 0) {
+            $a = explode('=', $params[0]);
+            if (sizeof($a) < 2) {
+                App::failure(400, $this->makeErrorMessageForInvalidParamsCLI());
+            }
+            $this->dsn = $a[1];
+            array_shift($params);
+            if (empty($params[0])) {
+                App::failure(400, $this->makeErrorMessageForInvalidParamsCLI());
+            }
+        }
+        $this->setMethodName($params[0]);
+        array_shift($params);
+
+        // set parameters
+        $method_params = [];
+        foreach($params as $param)
+        {
+            $a = explode('=', $param);
+            if (sizeof($a) < 2) {
+                App::failure(400, $this->makeErrorMessageForInvalidParamsCLI());
+            }
+            $method_params[$a[0]] = $a[1];
+        }
+        $this->setParameters($method_params);
     }
 
     /**
@@ -257,11 +277,16 @@ class Router
 
     private function makeErrorMessageForInvalidParamsCLI()
     {
+        if (empty($this->controllerName()) || empty($this->methodName())) {
+            return ('Not enough parameters.' . PHP_EOL . 'Syntax:'
+                . ' php console.php namespace/controller [--dsn=data_source_name]'
+                . ' methods [param1=value1 [ ... ]]' . PHP_EOL);
+        }
         $params = (new \ReflectionMethod($this->controllerName(), $this->methodName()))
             ->getParameters();
         $message = 'Not enough parameters.' . PHP_EOL . 'Syntax:' . PHP_EOL
             . 'php crystal.php '
-            . $this->controllerName() . ' '
+            . $this->controllerName() . ' [--dsn=data_source_name] '
             . $this->methodName();
         /** @var \ReflectionParameter $param */
         foreach($params as $param) {
