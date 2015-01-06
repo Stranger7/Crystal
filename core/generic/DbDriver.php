@@ -15,6 +15,10 @@ namespace core\generic;
 
 abstract class DbDriver
 {
+    const INDEX        = 'INDEX';
+    const UNIQUE_INDEX = 'UNIQUE INDEX';
+    const PRIMARY_KEY  = 'PRIMARY KEY';
+
     /**
      * @var resource|\mysqli
      */
@@ -27,11 +31,50 @@ abstract class DbDriver
     private $password = '';
     private $database = '';
 
+    protected $bd_int_data_types = [
+        'SERIAL',
+        'TINYINT',
+        'SMALLINT',
+        'INT',
+        'INTEGER',
+        'BIGINT'
+    ];
+
+    protected $bd_float_data_types = [
+        'DOUBLE',
+        'FLOAT'
+    ];
+
+    protected $bd_date_data_types = [
+        'DATE',
+        'DATETIME',
+        'TIMESTAMP'
+    ];
+
+    protected $bd_string_data_types = [
+        'TEXT',
+        'VARCHAR',
+        'STRING'
+    ];
+
+    protected $bd_bool_data_types = [
+        'BOOL',
+        'BOOLEAN'
+    ];
+
     /*===============================================================*/
     /*                         M E T H O D S                         */
     /*===============================================================*/
 
     public function __construct() {}
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return __CLASS__;
+    }
 
     /**
      * Create connection with database
@@ -231,11 +274,160 @@ abstract class DbDriver
      */
     abstract protected function doQuery($sql);
 
+    /*===============================================================*/
+    /*                    C R E A T E    T A B L E                   */
+    /*===============================================================*/
+
     /**
+     * @param string $table_name
+     * @param array $description
+     * @return bool
+     */
+    public function createTable($table_name, $description)
+    {
+        if (empty($table_name)) {
+            throw new \InvalidArgumentException('Table name not specified');
+        }
+        if (empty($description['fields'])) {
+            throw new \InvalidArgumentException('Describes the fields are not defined');
+        }
+        $sql = 'CREATE' . ' TABLE ' . $table_name;
+        $definitions = [];
+
+        // Field definitions
+        foreach($description['fields'] as $field => $definition)
+        {
+            $definitions[] = $this->makeFieldDefinition($field, $definition);
+        }
+
+        // Primary key expression
+        if (!empty($description['primary_key'])) {
+            $definitions[] = $this->makeIndexExpression($description['primary_key'], 'PRIMARY KEY');
+        }
+
+        // Unique index expression
+        if (!empty($description['unique'])) {
+            foreach($description['unique'] as $index_fields) {
+                $definitions[] = $this->makeIndexExpression($index_fields, 'UNIQUE');
+            }
+        }
+
+        // Foreign keys
+        if (!empty($description['foreign_keys'])) {
+            foreach($description['foreign_keys'] as $foreign_key) {
+                $definitions[] = $this->makeForeignKeyExpression($foreign_key);
+            }
+        }
+
+        // Concat SQL
+        $sql .= ' (' . implode(', ', $definitions) . ')';
+        if (!empty($description['options'])) {
+            $sql .= ' ' . $description['options'];
+        }
+        return $this->doQuery($sql);
+    }
+
+    /**
+     * Create string of field definition
+     *
+     * @param string $field_name
+     * @param array $definition
      * @return string
      */
-    public function __toString()
+    abstract protected function makeFieldDefinition($field_name, $definition);
+
+    /**
+     * Create primary key or unique clause
+     *
+     * @param string|array $fields
+     * @param string $type
+     * @return string
+     */
+    protected function makeIndexExpression($fields, $type)
     {
-        return __CLASS__;
+        if (!is_array($fields))
+        {
+            $fields = [$fields];
+        }
+        return $type . ' (' . implode(',' , $fields) . ')';
+    }
+
+    /**
+     * Create foreign key expression
+     *
+     * @param array $foreign_key
+     * @return string
+     */
+    protected function makeForeignKeyExpression($foreign_key)
+    {
+        if (empty($foreign_key['columns'])) {
+            throw new \InvalidArgumentException('Columns of foreign key not specified');
+        }
+        $columns = $foreign_key['columns'];
+        if (!is_array($columns)) {
+            $columns = [$columns];
+        }
+
+        if (empty($foreign_key['ref_table'])) {
+            throw new \InvalidArgumentException('Referenced table for foreign key not specified');
+        }
+
+        if (empty($foreign_key['ref_columns'])) {
+            throw new \InvalidArgumentException('Referenced columns for foreign key not specified');
+        }
+        $ref_columns = $foreign_key['ref_columns'];
+        if (!is_array($ref_columns)) {
+            $ref_columns = [$ref_columns];
+        }
+
+        $on_update = empty($foreign_key['on_update']) ? 'RESTRICT' : $foreign_key['on_update'];
+        $on_delete = empty($foreign_key['on_delete']) ? 'RESTRICT' : $foreign_key['on_delete'];
+
+        return (
+            'FOREIGN KEY'
+            . ' (' . implode(',', $columns) . ')'
+            . ' REFERENCES ' . $foreign_key['ref_table'] . ' (' . implode(',', $ref_columns) . ')'
+            . ' ON UPDATE ' . $on_update
+            . ' ON DELETE ' . $on_delete
+        );
+    }
+
+    /*===============================================================*/
+    /*                      D R O P     T A B L E                    */
+    /*===============================================================*/
+
+    /**
+     * @param string $table_name
+     * @return bool
+     */
+    public function dropTable($table_name)
+    {
+        if (empty($table_name)) {
+            throw new \InvalidArgumentException('Table name not specified');
+        }
+        $sql = 'DROP' . ' TABLE ' . $table_name . ' CASCADE';
+        return $this->doQuery($sql);
+    }
+
+    /*===============================================================*/
+    /*                   C R E A T E     I N D E X                   */
+    /*===============================================================*/
+
+    /**
+     * @param string $table_name
+     * @param array $fields
+     * @param string $index_type
+     * @return \core\db_drivers\query_results\QueryResult|null
+     */
+    public function createIndex($table_name, $fields, $index_type = self::INDEX)
+    {
+        if (!is_array($fields)) {
+            $fields = [$fields];
+        }
+        $sql = 'CREATE' . $index_type
+            . ' ' . $table_name . '_' . implode('_', $fields)
+            . ' ON ' . $table_name
+            . ' (' . implode(', ', $fields) . ')';
+        return $this->doQuery($sql);
     }
 }
