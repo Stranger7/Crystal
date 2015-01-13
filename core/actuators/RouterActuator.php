@@ -55,12 +55,6 @@ class RouterActuator implements Actuator
      *
      *   Called Orders::preview($param1, $param2)
      *       PUT|POST:/orders/preview/%1/%2 => app\web\Orders::preview
-     *
-     *   Called Orders::table(Variable number of arguments)
-     *       /orders/list/+ => app\web\Orders::table
-     *
-     *   Called Orders::table() without parameters. The residue of the URL is ignored
-     *       /orders/list/- => app\web\Orders::table
      */
     public static function parseRoute($description)
     {
@@ -68,6 +62,10 @@ class RouterActuator implements Actuator
         return array_merge(self::parseUri($uri), self::parseAction($action));
     }
 
+    /**
+     * @param string $description
+     * @return array
+     */
     private static function splitToUriAndAction($description)
     {
         $a = explode('=>', $description);
@@ -77,6 +75,10 @@ class RouterActuator implements Actuator
         return [trim($a[0]), trim($a[1])];
     }
 
+    /**
+     * @param string $uri
+     * @return array
+     */
     private static function parseUri($uri)
     {
         $allowed_methods = Router::getRestfulMethods();
@@ -94,7 +96,7 @@ class RouterActuator implements Actuator
         } else {
             $request_uri = $uri;
         }
-        list($request_uri, $param_count) = self::getParamCount(trim(trim($request_uri), '/'));
+        list($request_uri, $param_count) = self::extractUriAndParamCount(trim(trim($request_uri), '/'));
 
         return [
             'allowed_methods' => $allowed_methods,
@@ -104,6 +106,12 @@ class RouterActuator implements Actuator
         ];
     }
 
+    /**
+     * @param array $allowed_methods
+     * @param string $request_uri
+     * @param int $param_count
+     * @return string
+     */
     private static function createPattern($allowed_methods, $request_uri, $param_count)
     {
         // Add sub-mask for $allowed_methods
@@ -119,8 +127,8 @@ class RouterActuator implements Actuator
 
         // Add parameters sub-mask
         $pattern .= '(\/\w+)';
-        if ($param_count < 0) {
-            $pattern .= '{0,}';
+        if ($param_count <= 0) {
+            $pattern .= '{0}';
         } else {
             $pattern .= '{' . $param_count . '}';
         }
@@ -128,27 +136,25 @@ class RouterActuator implements Actuator
         return ($pattern . '$/i');
     }
 
-    private static function getParamCount($uri)
+    /**
+     * @param string $uri
+     * @return array
+     */
+    private static function extractUriAndParamCount($uri)
     {
-        $param_count = 0;
-        // Check for the presence of modifier "/+" (Variable number of arguments).
-        $uri = preg_replace('/(\/\+)$/i', '', $uri, -1, $param_count);
-        if (!$param_count) {
-            $uri = preg_replace('/(\/\-)$/i', '', $uri, -1, $param_count);
-            if (!$param_count) {
-                $uri = preg_replace('/(\/%\d+)/i', '', $uri, -1, $param_count);
-            } else {
-                $param_count = Router::IGNORE_PARAMS;
-            }
-        } else {
-            $param_count = Router::VARIABLE_PARAM_COUNT;
-        }
+        $a = preg_split('/(\/%)/', $uri);
+        $param_count = count($a) - 1;
+        $uri = $a[0];
         return [
             $uri,
             $param_count
         ];
     }
 
+    /**
+     * @param string $action
+     * @return array
+     */
     private static function parseAction($action)
     {
         $a = explode('::', $action);

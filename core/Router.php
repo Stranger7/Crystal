@@ -19,9 +19,6 @@ namespace core;
  */
 class Router
 {
-    const VARIABLE_PARAM_COUNT = -1;
-    const IGNORE_PARAMS        = -2;
-
     private static $restful_methods = ['GET', 'POST', 'PUT', 'DELETE'];
 
     /**
@@ -114,17 +111,18 @@ class Router
         } else {
             $action = trim(substr($request_uri, strlen($script_path)), '/');
         }
+        // convert unexpected GET params
+        if (!empty($_GET)) {
+            $action = substr($action, 0, strlen($action) - strlen($_SERVER['QUERY_STRING']) - 1);
+        }
         $method_action = strtoupper($_SERVER['REQUEST_METHOD']) . ':' . $action;
-
         foreach($this->routes as $route => $description)
         {
             if (preg_match($description['pattern'], $method_action) > 0)
             {
                 $this->controller_name = $description['class'];
                 $this->method_name = $description['method'];
-                if (($description['param_count'] === self::VARIABLE_PARAM_COUNT)
-                    || ($description['param_count'] > 0))
-                {
+                if ($description['param_count'] > 0) {
                     $this->parameters = $this->parseParameters($action, $description);
                 } else {
                     $this->parameters = [];
