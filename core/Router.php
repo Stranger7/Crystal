@@ -219,7 +219,7 @@ class Router
     }
 
     /**
-     * @param $method_name
+     * @param string $method_name
      */
     public function setMethodName($method_name)
     {
