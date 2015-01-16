@@ -115,18 +115,14 @@ class Router
         if (!empty($_GET)) {
             $action = substr($action, 0, strlen($action) - strlen($_SERVER['QUERY_STRING']) - 1);
         }
-        $method_action = strtoupper($_SERVER['REQUEST_METHOD']) . ':' . $action;
+        $method_action = strtoupper($_SERVER['REQUEST_METHOD']) . ':/' . $action;
         foreach($this->routes as $route => $description)
         {
             if (preg_match($description['pattern'], $method_action) > 0)
             {
                 $this->controller_name = $description['class'];
                 $this->method_name = $description['method'];
-                if ($description['param_count'] > 0) {
-                    $this->parameters = $this->parseParameters($action, $description);
-                } else {
-                    $this->parameters = [];
-                }
+                $this->parameters = $this->parseParameters($action, $description);
                 return;
             }
         }
@@ -191,7 +187,7 @@ class Router
     private function parseParameters($action, $description)
     {
         $params = [];
-        if ($params_str = substr($action, strlen($description['request_uri'])))
+        if ($params_str = substr($action, strlen($description['cleared_uri'])))
         {
             $params = explode('/', trim($params_str, '/'));
         }
@@ -254,25 +250,50 @@ class Router
         $this->parameters = $parameters;
     }
 
+    /**
+     * Presence checking parameters
+     */
     private function checkParameters()
     {
         $method = new \ReflectionMethod($this->controllerName(), $this->methodName());
-        $params = $method->getParameters();
+        if (Utils::isCLI()) {
+            $this->checkParametersCLI($method->getParameters());
+        } else {
+            $this->checkParametersWeb($method->getParameters());
+        }
+    }
+
+    /**
+     * @param \ReflectionParameter[] $params
+     */
+    private function checkParametersCLI($params)
+    {
         foreach($params as $param)
         {
             if (!$param->isOptional() && !isset($this->parameters[$param->getName()])) {
-                throw new \RuntimeException($this->makeErrorMessageForInvalidParams(), 400);
+                throw new \RuntimeException($this->makeErrorMessageForInvalidParamsCLI(), 400);
             }
         }
     }
 
-    private function makeErrorMessageForInvalidParams()
+    /**
+     * @param \ReflectionParameter[] $params
+     */
+    private function checkParametersWeb($params)
     {
-        return Utils::isCLI()
-            ? $this->makeErrorMessageForInvalidParamsCLI()
-            : $this->makeErrorMessageForInvalidParamsWeb();
+        $i = 0;
+        foreach($params as $param)
+        {
+            if (!$param->isOptional() && !isset($this->parameters[$i])) {
+                throw new \RuntimeException($this->makeErrorMessageForInvalidParamsWeb(), 400);
+            }
+            $i++;
+        }
     }
 
+    /**
+     * @return string
+     */
     private function makeErrorMessageForInvalidParamsCLI()
     {
         if (empty($this->controllerName()) || empty($this->methodName())) {
@@ -297,6 +318,9 @@ class Router
         return $message;
     }
 
+    /**
+     * @return string
+     */
     private function makeErrorMessageForInvalidParamsWeb()
     {
         $params = (new \ReflectionMethod($this->controllerName(), $this->methodName()))

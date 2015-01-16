@@ -25,6 +25,11 @@ use core\Router;
 class RouterActuator implements Actuator
 {
     /**
+     * @var string
+     */
+    private static $description = '';
+
+    /**
      * Parse config-file and creating of route array
      * @return \core\Router
      */
@@ -54,7 +59,13 @@ class RouterActuator implements Actuator
      *       PUT|POST:/orders/edit => app\web\Orders::edit
      *
      *   Called Orders::preview($param1, $param2)
-     *       PUT|POST:/orders/preview/%1/%2 => app\web\Orders::preview
+     *       PUT|POST:/orders/preview?/%1/%2 => app\web\Orders::preview
+     *
+     *   Called Orders::preview($param1, $param2 = 'default value')
+     *       PUT|POST:/orders/preview?/%1[/%2] => app\web\Orders::preview
+     *
+     *   Called Orders::preview($param1 = 'default value 1', $param2 = 'default value 2')
+     *       PUT|POST:/orders/preview?[/%1][/%2] => app\web\Orders::preview
      */
     public static function parseRoute($description)
     {
@@ -68,6 +79,7 @@ class RouterActuator implements Actuator
      */
     private static function splitToUriAndAction($description)
     {
+        self::$description = $description;
         $a = explode('=>', $description);
         if (sizeof($a) != 2) {
             throw new \RuntimeException('Invalid route format: ' . $description, 500);
@@ -96,23 +108,35 @@ class RouterActuator implements Actuator
         } else {
             $request_uri = $uri;
         }
-        list($request_uri, $param_count) = self::extractUriAndParamCount(trim(trim($request_uri), '/'));
+        list($cleared_uri,
+            $required_param_count,
+            $optional_param_count) = self::extractUriAndParamCount(trim(trim($request_uri), '/'));
 
         return [
-            'allowed_methods' => $allowed_methods,
-            'request_uri'     => $request_uri,
-            'param_count'     => $param_count,
-            'pattern'         => self::createPattern($allowed_methods, $request_uri, $param_count)
+            'allowed_methods'      => $allowed_methods,
+            'cleared_uri'          => $cleared_uri,
+            'required_param_count' => $required_param_count,
+            'optional_param_count' => $optional_param_count,
+            'pattern'              => self::createPattern(
+                $allowed_methods,
+                $cleared_uri,
+                $required_param_count,
+                $optional_param_count
+            )
         ];
     }
 
     /**
      * @param array $allowed_methods
      * @param string $request_uri
-     * @param int $param_count
+     * @param int $required_param_count
+     * @param int $optional_param_count
      * @return string
      */
-    private static function createPattern($allowed_methods, $request_uri, $param_count)
+    private static function createPattern($allowed_methods,
+                                          $request_uri,
+                                          $required_param_count,
+                                          $optional_param_count)
     {
         // Add sub-mask for $allowed_methods
         $pattern = '/^(';
@@ -120,19 +144,14 @@ class RouterActuator implements Actuator
             $pattern .= $allowed_methods[$i] .
                 (($i == (count($allowed_methods)-1)) ? '' : '|');
         }
-        $pattern .= '):';
+        $pattern .= '):\/';
 
         // Add module
         $pattern .= str_replace('/', '\/', $request_uri);
 
         // Add parameters sub-mask
-        $pattern .= '(\/\w+)';
-        if ($param_count <= 0) {
-            $pattern .= '{0}';
-        } else {
-            $pattern .= '{' . $param_count . '}';
-        }
-
+        $pattern .= '(\/\w+)'
+            . '{' . $required_param_count . ',' . ($required_param_count + $optional_param_count) . '}';
         return ($pattern . '$/i');
     }
 
@@ -142,13 +161,70 @@ class RouterActuator implements Actuator
      */
     private static function extractUriAndParamCount($uri)
     {
-        $a = preg_split('/(\/%)/', $uri);
-        $param_count = count($a) - 1;
-        $uri = $a[0];
+        $cleared_uri = '';
+        $required_param_count = 0;
+        $optional_param_count = 0;
+        if (empty($uri)) {
+            $a = [];
+        } elseif($uri[0] == '?') {
+            $a[0] = '';
+            $a[1] = substr($uri, 1);
+        } else {
+            $a = preg_split('/^(.*)\?(.*)$/U', $uri, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+        }
+        //example: $uri = '/orders/preview?/%1/%2[/%3][/%4]';
+        if (!empty($a)) {
+            $cleared_uri = $a[0];
+            if (count($a) == 2) {
+                $pattern = '/(\[\/\%\d+\])/U';
+                $b = preg_split($pattern, $a[1], -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+                $required_param_count = self::parseRequiredParams($b[0]);
+                if ($required_param_count > 0) {
+                    array_shift($b);
+                }
+                foreach($b as $seg) {
+                    if (!self::isOptionalParam($seg)) {
+                        throw new \RuntimeException('Invalid route: ' . self::$description . '. See segment ' . $seg);
+                    }
+                }
+                $optional_param_count = count($b);
+            } elseif(count($a) > 2) {
+                throw new \RuntimeException('Invalid route: ' . self::$description . '. see URI ' . $uri);
+            }
+        }
         return [
-            $uri,
-            $param_count
+            $cleared_uri,
+            $required_param_count,
+            $optional_param_count
         ];
+    }
+
+    /**
+     * @param string $params
+     * @return int
+     */
+    private static function parseRequiredParams($params)
+    {
+        $pattern = '/^(\/\%\d+){1,}$/';
+        if (preg_match($pattern, $params)) {
+            return count(explode('/%', $params)) - 1;
+        } else {
+            if (!self::isOptionalParam($params)) {
+                throw new \RuntimeException('Invalid route: ' . self::$description . '. See segment ' . $params);
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Check matching to [/%4]
+     *
+     * @param string $param
+     * @return int
+     */
+    private static function isOptionalParam($param)
+    {
+        return preg_match('/^(\[\/\%\d+\])$/', $param);
     }
 
     /**
