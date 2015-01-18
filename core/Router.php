@@ -24,11 +24,14 @@ class Router
     /**
      * @var array
      * Example:
-     * $routes['OrderCreate'] = [
-     *     'allowed_methods' => ['POST'], // Allowed methods in Router::$restful_methods.
-     *     'request_uri'     => 'orders/create',
-     *     'class'           => '\app\web\Order',
-     *     'method'          => 'create'
+     * $routes['LoadOrder'] = [
+     *      "allowed_methods"      => ["GET","POST"],
+     *      "cleared_uri"          => "order/load",
+     *      "required_param_count" => 1,
+     *      "optional_param_count" => 2,
+     *      "pattern"              => "/^(GET|POST):\/order\/load(\/\w+){1,3}$/i",
+     *      "class"                => "app\web\Order",
+     *      "method"               => "load",
      * ]
      */
     private $routes = [];
@@ -68,6 +71,15 @@ class Router
     public function addRoute($name, $descriptor)
     {
         $this->routes[$name] = $descriptor;
+    }
+
+    /**
+     * @param string $name
+     * @return array|bool
+     */
+    public function getRoute($name)
+    {
+        return (isset($this->routes[$name]) ? $this->routes[$name] : false);
     }
 
     /**
@@ -111,7 +123,7 @@ class Router
         } else {
             $action = trim(substr($request_uri, strlen($script_path)), '/');
         }
-        // convert unexpected GET params
+        // cut unexpected GET params
         if (!empty($_GET)) {
             $action = substr($action, 0, strlen($action) - strlen($_SERVER['QUERY_STRING']) - 1);
         }

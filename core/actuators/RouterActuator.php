@@ -47,9 +47,8 @@ class RouterActuator implements Actuator
 
     /**
      * Parse string of route from config file
-     * @param string $description
-     * @return array
      *
+     * @param string $description
      * examples of $description:
      *   / => public\Home::index
      *   /orders => app\web\Order::index
@@ -66,6 +65,18 @@ class RouterActuator implements Actuator
      *
      *   Called Orders::preview($param1 = 'default value 1', $param2 = 'default value 2')
      *       PUT|POST:/orders/preview?[/%1][/%2] => app\web\Orders::preview
+     *
+     * @return array
+     * Example:
+     * [
+     *      "allowed_methods"      => ["GET","POST"],
+     *      "cleared_uri"          => "order/load",
+     *      "required_param_count" => 1,
+     *      "optional_param_count" => 2,
+     *      "pattern"              => "/^(GET|POST):\/order\/load(\/\w+){1,3}$/i",
+     *      "class"                => "app\web\Order",
+     *      "method"               => "load",
+     * ]
      */
     public static function parseRoute($description)
     {
