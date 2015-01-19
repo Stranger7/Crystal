@@ -84,6 +84,16 @@ class RouterActuatorTest extends \PHPUnit_Framework_TestCase
                 'class'                => 'app\web\Order',
                 'method'               => 'save',
             ],
+            [
+                'description'          => 'GET:/order/print?/%1[/%2] => app\web\Order::print',
+                'allowed_methods'      => ['GET'],
+                'cleared_uri'          => 'order/print',
+                'required_param_count' => 1,
+                'optional_param_count' => 1,
+                'pattern'              => '/^(GET):\/order\/print(\/\w+){1,2}$/i',
+                'class'                => 'app\web\Order',
+                'method'               => 'print',
+            ],
         ];
     }
 }
