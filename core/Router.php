@@ -83,6 +83,24 @@ class Router
     }
 
     /**
+     * Returns URL for specified route
+     *
+     * @param string $route_name
+     * @param array $params
+     * @return string
+     */
+    public function makeUrl($route_name, $params = [])
+    {
+        $url = false;
+        if ($route = $this->getRoute($route_name)) {
+            $url = Utils::baseUrl()
+                . $route['cleared_uri']
+                . (!empty($params) ? '/'  : '') . implode('/', $params);
+        }
+        return $url;
+    }
+
+    /**
      * Get all available REST methods
      * @return array
      */

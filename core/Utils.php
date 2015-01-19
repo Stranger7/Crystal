@@ -186,13 +186,36 @@ class Utils
             && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
     }
 
-    public static function url($action = '')
+    /**
+     * @param string $entity
+     * @return string
+     */
+    public static function url($entity = '')
     {
-        $base = $_SERVER['HTTP_HOST'] . $script_path = str_replace(
-            'index.php',
-            '',
-            str_replace('//index.php', '/index.php', $_SERVER['SCRIPT_NAME'])
+        return self::baseUrl() . ltrim($entity, '/');
+    }
+
+    /**
+     * @return string
+     */
+    public static function baseUrl()
+    {
+        $base = (!empty($_SERVER['HTTP_HOST']) && !empty($_SERVER['SCRIPT_NAME'])
+            ? (
+                '//'
+                . $_SERVER['HTTP_HOST']
+                . str_replace(
+                    'index.php',
+                    '',
+                    str_replace(
+                        '//index.php',
+                        '/index.php',
+                        $_SERVER['SCRIPT_NAME']
+                    )
+                )
+            )
+            : ''
         );
-        return '//' . $base . ltrim($action, '/');
+        return (empty($base) ? '/' : $base);
     }
 }
