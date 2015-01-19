@@ -46,7 +46,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
                     'class'                => 'app\web\Order',
                     'method'               => 'create',
                 ],
-                [],
+                'params' => [],
                 'url' => Utils::baseUrl() . 'order/create'
             ],
             [
@@ -61,7 +61,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
                     'class'                => 'app\web\Order',
                     'method'               => 'print',
                 ],
-                [10,20],
+                'params' => [10,20],
                 'url' => Utils::baseUrl() . 'order/print/10/20'
             ],
         ];
