@@ -139,6 +139,16 @@ abstract class Session
     }
 
     /**
+     * Unset specified item
+     *
+     * @param string $item
+     */
+    public function remove($item)
+    {
+        if (isset($this->data[$item])) unset($this->data[$item]);
+    }
+
+    /**
      * @param Request $request
      * @return bool
      */
@@ -179,6 +189,9 @@ abstract class Session
                 $this->destroy();
                 App::logger()->debug('Session destroyed with cookie "' . $this->cookie_name . '"');
                 return $this->create();
+            } else {
+                // refresh cookie
+                $this->request->setCookie($this->cookie_name, $this->id, $this->expiration);
             }
             $this->is_live = true;
             return true;
