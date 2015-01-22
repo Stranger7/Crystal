@@ -366,6 +366,24 @@ abstract class Model implements CanCreateSchema
             ->run()->row();
     }
 
+    /**
+     * Typical uses: for serial model initialization values select query
+     *
+     * @param mixed $data_source
+     * @return \Generator
+     */
+    public function iterator($data_source)
+    {
+        if (is_array($data_source) || is_object($data_source))
+        {
+            foreach($data_source as $row)
+            {
+                $this->setValues($row);
+                yield $this;
+            }
+        }
+    }
+
     /*===============================================================*/
     /*                           S A V E                             */
     /*===============================================================*/
@@ -491,14 +509,14 @@ abstract class Model implements CanCreateSchema
     }
 
     /**
-     * @param bool $idHasValueCheck
+     * @param bool $id_value_check
      */
-    private function idInitializationCheck($idHasValueCheck = false)
+    private function idInitializationCheck($id_value_check = false)
     {
         if (is_null($this->id)) {
             throw new \LogicException('Id field not defined', 501);
         }
-        if ($idHasValueCheck && !$this->id->initialized()) {
+        if ($id_value_check && !$this->id->initialized()) {
             throw new \LogicException('Id is not set', 501);
         }
     }
