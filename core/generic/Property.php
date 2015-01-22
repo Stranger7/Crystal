@@ -55,6 +55,11 @@ abstract class Property
     protected $read_only = false;
 
     /**
+     * @var mixed|null
+     */
+    protected $output_format = self::NOT_INITIALIZED;
+
+    /**
      * @var array
      */
     private $rules = [];
@@ -69,7 +74,7 @@ abstract class Property
     /*===============================================================*/
 
     /**
-     * @param $name
+     * @param string $name
      * @return \core\generic\Property
      */
     public function __construct($name)
@@ -100,6 +105,14 @@ abstract class Property
     public function get()
     {
         return $this->value;
+    }
+
+    /**
+     * @param mixed $output_format
+     */
+    public function setOutputFormat($output_format)
+    {
+        $this->output_format = $output_format;
     }
 
     /**
