@@ -192,14 +192,6 @@ class Utils
      */
     public static function url($entity = '')
     {
-        return self::baseUrl() . ltrim($entity, '/');
-    }
-
-    /**
-     * @return string
-     */
-    public static function baseUrl()
-    {
         $base = (!empty($_SERVER['HTTP_HOST']) && !empty($_SERVER['SCRIPT_NAME'])
             ? (
                 '//'
@@ -214,8 +206,16 @@ class Utils
                     )
                 )
             )
-            : ''
+            : '/'
         );
-        return (empty($base) ? '/' : $base);
+        return $base . (substr($base, -1) == '/' ? '' : '/') . ltrim($entity, '/');
+    }
+
+    /**
+     * @return string
+     */
+    public static function currentUrl()
+    {
+        return '//' . $_SERVER['HTTP_HOST'] . $_SERVER["REQUEST_URI"];
     }
 }
