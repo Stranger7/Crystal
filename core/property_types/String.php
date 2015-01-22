@@ -39,7 +39,7 @@ class String extends Property
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function preparedForDb()
     {

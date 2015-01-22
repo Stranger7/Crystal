@@ -13,6 +13,8 @@
 
 namespace core\property_types;
 
+use core\App;
+use core\Config;
 use core\generic\Property;
 
 /**
@@ -22,6 +24,18 @@ use core\generic\Property;
 class DateTime extends Property
 {
     /**
+     * @param string $name
+     * @return \core\property_types\DateTime
+     */
+    public function __construct($name)
+    {
+        parent::__construct($name);
+        $this->output_format = App::config()->get(Config::GLOBAL_SECTION, 'default_date_format')
+            . ' H:i:s';
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function type()
@@ -30,16 +44,19 @@ class DateTime extends Property
     }
 
     /**
-     * @param string $format
+     * @param mixed|null $format
      * @return bool|string
      */
-    public function asString($format = 'd.m.Y H:i:s')
+    public function asString($format = self::NOT_INITIALIZED)
     {
+        if ($format === self::NOT_INITIALIZED) {
+            $format = $this->output_format;
+        }
         return date($format, $this->value);
     }
 
     /**
-     * @return bool|string
+     * @return string
      */
     public function preparedForDb()
     {

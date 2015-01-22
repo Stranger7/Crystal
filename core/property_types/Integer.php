@@ -46,6 +46,9 @@ class Integer extends Property
         return strval($this->value);
     }
 
+    /**
+     * @return bool
+     */
     public function isEmpty()
     {
         return empty($this->value);

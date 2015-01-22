@@ -22,7 +22,16 @@ use core\Utils;
  */
 class Bool extends Property
 {
-    private $format = ['TRUE', 'FALSE'];
+    /**
+     * @param string $name
+     * @return \core\property_types\Bool
+     */
+    public function __construct($name)
+    {
+        parent::__construct($name);
+        $this->output_format = ['Yes', 'No'];
+        return $this;
+    }
 
     /**
      * @return string
@@ -38,17 +47,25 @@ class Bool extends Property
      */
     public function asString($format = [])
     {
-        if (is_array($format) && count($format) == 2) {
-            $this->format = $format;
+        if (!(is_array($format) && count($format) == 2)) {
+            $format = $this->output_format;
         }
-        return ($this->value ? ((string) $this->format[0]) : ((string) $this->format[1]));
+        return ($this->value ? ((string) $format[0]) : ((string) $format[1]));
     }
 
+    /**
+     * Prepare for recording to DB
+     *
+     * @return bool
+     */
     public function preparedForDb()
     {
-        return ($this->value ? $this->format[0] : $this->format[1]);
+        return $this->value;
     }
 
+    /**
+     * @return bool
+     */
     public function isEmpty()
     {
         return (!$this->initialized());

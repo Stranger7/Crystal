@@ -16,11 +16,25 @@ namespace core\property_types;
 class Time extends DateTime
 {
     /**
-     * @param string $format
+     * @param string $name
+     * @return \core\property_types\Time
+     */
+    public function __construct($name)
+    {
+        parent::__construct($name);
+        $this->output_format = 'H:i:s';
+        return $this;
+    }
+
+    /**
+     * @param mixed|null $format
      * @return bool|string
      */
-    public function asString($format = 'H:i:s')
+    public function asString($format = self::NOT_INITIALIZED)
     {
+        if ($format === self::NOT_INITIALIZED) {
+            $format = $this->output_format;
+        }
         return date($format, $this->value);
     }
 
