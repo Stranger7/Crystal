@@ -170,25 +170,21 @@ class Security
     /**
      * CSRF Verify
      *
+     * @param array $request_params
      * @return $this
+     * @throws \Exception
      */
-    public function csrfVerify()
+    public function csrfVerify(&$request_params)
     {
-        // If it's not a POST request we will set the CSRF cookie
-        if (strtoupper($_SERVER['REQUEST_METHOD']) !== 'POST')
-        {
-            return $this->csrfSetCookie();
-        }
-
-        // Do the tokens exist in both the _POST and _COOKIE arrays?
-        if (!isset($_POST[$this->csrf_token_name], $_COOKIE[$this->csrf_cookie_name])
-            OR $_POST[$this->csrf_token_name] !== $_COOKIE[$this->csrf_cookie_name]) // Do the tokens match?
+        // Do the tokens exist in both the _POST|_DELETE and _COOKIE arrays?
+        if (!isset($request_params[$this->csrf_token_name], $_COOKIE[$this->csrf_cookie_name])
+            OR $request_params[$this->csrf_token_name] !== $_COOKIE[$this->csrf_cookie_name]) // Do the tokens match?
         {
             throw new \RuntimeException('The action you have requested is not allowed', 403);
         }
 
-        // We kill this since we're done and we don't want to pollute the _POST array
-        unset($_POST[$this->csrf_token_name]);
+        // We kill this since we're done and we don't want to pollute the _POST|_DELETE array
+        unset($request_params[$this->csrf_token_name]);
 
         // Regenerate on every submission?
         $regenerate = Utils::boolValue(App::config()->get(Config::SECURITY_SECTION, 'csrf_regenerate'));
@@ -210,7 +206,7 @@ class Security
      *
      * @return $this
      */
-    protected function csrfSetCookie()
+    public function csrfSetCookie()
     {
         $expire = time() + $this->csrf_expire;
         $secure_cookie = Utils::boolValue(App::config()->get(Config::COOKIE_SECTION, 'secure'));

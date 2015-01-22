@@ -64,6 +64,19 @@ class Request
      */
     private $headers = [];
 
+    /**
+     * Parameters for method DELETE
+     *
+     * @var array
+     */
+    private $_DELETE = [];
+
+    /**
+     * Parameters for method PUT
+     *
+     * @var array
+     */
+    private $_PUT = [];
 
     /**
      * Enable CSRF flag
@@ -108,6 +121,13 @@ class Request
         $this->enable_csrf = Utils::boolValue(
                 App::config()->get(Config::SECURITY_SECTION, 'csrf_protection')
             ) === true;
+
+        // Unsupported by PHP RESTful methods
+        if ($this->method(true) == 'DELETE') {
+            $this->readStreamTo($this->_DELETE);
+        } elseif ($this->method(true) == 'PUT') {
+            $this->readStreamTo($this->_PUT);
+        }
 
         $this->sanitizeGlobals();
     }
@@ -192,6 +212,30 @@ class Request
     public function post($index = null, $xss_clean = null)
     {
         return $this->fetchFromArray($_POST, $index, $xss_clean);
+    }
+
+    /**
+     * Fetch an item from the PUT array
+     *
+     * @param   string  $index      Index for item to be fetched from $_POST
+     * @param   bool    $xss_clean  Whether to apply XSS filtering
+     * @return  mixed
+     */
+    public function put($index = null, $xss_clean = null)
+    {
+        return $this->fetchFromArray($this->_PUT, $index, $xss_clean);
+    }
+
+    /**
+     * Fetch an item from the DELETE array
+     *
+     * @param   string  $index      Index for item to be fetched from $_POST
+     * @param   bool    $xss_clean  Whether to apply XSS filtering
+     * @return  mixed
+     */
+    public function delete($index = null, $xss_clean = null)
+    {
+        return $this->fetchFromArray($this->_DELETE, $index, $xss_clean);
     }
 
     /**
@@ -550,7 +594,17 @@ class Request
         // CSRF Protection check
         if (($this->enable_csrf === true) && (!Utils::isCLI()))
         {
-            $this->security->csrfVerify();
+            switch($this->method(true)) {
+                case 'POST':
+                    $this->security->csrfVerify($_POST);
+                    break;
+                case 'DELETE':
+                    $this->security->csrfVerify($this->_DELETE);
+                    break;
+                case 'GET':
+                    $this->security->csrfSetCookie();
+                    break;
+            }
         }
     }
 
@@ -702,5 +756,17 @@ class Request
         return ($upper)
             ? strtoupper($this->server('REQUEST_METHOD'))
             : strtolower($this->server('REQUEST_METHOD'));
+    }
+
+    private function readStreamTo(&$array)
+    {
+        $data = file_get_contents('php://input');
+        foreach(explode('&', $data) as $pair)
+        {
+            if (!empty($pair)) {
+                $a = explode('=', $pair, 2);
+                $array[urldecode($a[0])] = ((count($a) == 2) ? urldecode($a[1]) : '');
+            }
+        }
     }
 }
