@@ -29,10 +29,10 @@ class Html
      */
     public static function CSRFToken($prefix_for_id = '')
     {
-        if (App::router()->controller() instanceof WebController)
+        if (App::getRouter()->controller() instanceof WebController)
         {
             /** @var WebController $controller */
-            $controller = App::router()->controller();
+            $controller = App::getRouter()->controller();
             echo '<input type="hidden"'
                 . ' id="' . $prefix_for_id . App::config()->get('security', 'csrf_token_name') . '"'
                 . ' name="' . App::config()->get('security', 'csrf_token_name') . '"'
