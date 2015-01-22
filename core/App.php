@@ -48,17 +48,17 @@ class App
     /**
      * @var Config
      */
-    private static $config;
+    private static $config = null;
 
     /**
      * @var Router
      */
-    private static $router;
+    private static $router = null;
 
     /**
      * @var \core\generic\Logger
      */
-    private static $logger;
+    private static $logger = null;
 
     public static function init($name, $mode)
     {
@@ -118,7 +118,7 @@ class App
             if (!Utils::isCLI())
             {
                 /** @var WebController $controller */
-                if (self::router() && ($controller = self::router()->controller())) {
+                if (self::getRouter() && ($controller = self::getRouter()->controller())) {
                     $controller->http()->header($e->getCode());
                 } else {
                     (new Http())->header($e->getCode());
@@ -195,9 +195,21 @@ class App
     /**
      * @return Router
      */
-    public static function router()
+    public static function getRouter()
     {
         return self::$router;
+    }
+
+    /**
+     * Macro for router::route
+     *
+     * @param string $name
+     * @param array $params
+     * @return string
+     */
+    public static function route($name, $params = [])
+    {
+        return (!empty(self::$router) ? self::$router->route($name, $params) : '');
     }
 
     /**
