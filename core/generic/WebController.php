@@ -13,6 +13,7 @@
 
 namespace core\generic;
 
+use core\App;
 use core\Http;
 use core\Request;
 use core\Security;
@@ -74,5 +75,16 @@ abstract class WebController extends Controller
     public function http()
     {
         return $this->http;
+    }
+
+    /**
+     * Macro for redirect
+     *
+     * @param string $route_name
+     * @param array $params
+     */
+    protected function redirect($route_name, $params = [])
+    {
+        $this->http()->redirect(App::getRouter()->route($route_name, $params));
     }
 }
