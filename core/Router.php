@@ -77,7 +77,7 @@ class Router
      * @param string $name
      * @return array|bool
      */
-    public function getRoute($name)
+    public function descriptor($name)
     {
         return (isset($this->routes[$name]) ? $this->routes[$name] : false);
     }
@@ -85,16 +85,16 @@ class Router
     /**
      * Returns URL for specified route
      *
-     * @param string $route_name
+     * @param string $name
      * @param array $params
      * @return string
      */
-    public function makeUrl($route_name, $params = [])
+    public function route($name, $params = [])
     {
         $url = false;
-        if ($route = $this->getRoute($route_name)) {
-            $url = Utils::baseUrl()
-                . $route['cleared_uri']
+        if ($descriptor = $this->descriptor($name)) {
+            $url = Utils::url()
+                . $descriptor['cleared_uri']
                 . (!empty($params) ? '/'  : '') . implode('/', $params);
         }
         return $url;
@@ -156,7 +156,7 @@ class Router
                 return;
             }
         }
-        throw new \RuntimeException('Unable to resolve the request ' . $action, 404);
+        throw new \RuntimeException('Unable to resolve the request ' . $method_action, 404);
     }
 
     /**
