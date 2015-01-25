@@ -19,7 +19,7 @@ namespace core;
  */
 class Http
 {
-    private $codes = [
+    private static $codes = [
         200 => '200 OK',
         400 => '400 Bad Request',
         403 => '403 Forbidden',
@@ -47,16 +47,17 @@ class Http
      */
     public function header($code = 200, $strings = [])
     {
-        \header(
-            $_SERVER['SERVER_PROTOCOL']
-            . ' ' . (isset($this->codes[$code]) ? $this->codes[$code] : $this->codes[500])
-        );
+        \header($_SERVER['SERVER_PROTOCOL'] . ' ' . self::getStatusText($code));
         foreach($strings as $string)
         {
             \header($string);
         }
     }
 
+    /**
+     * @param string $url
+     * @param int $status_code
+     */
     public function redirect($url, $status_code = 302)
     {
         \header('Location: ' . $url, true, $status_code);
@@ -65,10 +66,22 @@ class Http
         exit();
     }
 
+    /**
+     * Show forbidden message
+     */
     public function forbidden()
     {
         $this->header(403);
         App::view('common/forbidden');
         exit();
+    }
+
+    /**
+     * @param int $code
+     * @return string
+     */
+    public static function getStatusText($code)
+    {
+        return (isset(self::$codes[$code]) ? self::$codes[$code] : self::$codes[500]);
     }
 }
