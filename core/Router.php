@@ -117,7 +117,7 @@ class Router
     {
         if (!method_exists($this->controller_name, $this->method_name)) {
             throw new \RuntimeException("Method {$this->method_name} "
-                . "in class {$this->controller_name} not exist", 500);
+                . "in class {$this->controller_name} not exist", 404);
         }
         $this->checkParameters();
         $this->controller = new $this->controller_name($this->dsn);
