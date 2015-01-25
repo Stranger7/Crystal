@@ -170,7 +170,7 @@ class Security
     /**
      * CSRF Verify
      *
-     * @param array $request_params
+     * @param $request_params
      * @return $this
      * @throws \Exception
      */
