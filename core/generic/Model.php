@@ -207,6 +207,7 @@ abstract class Model implements CanCreateSchema
     /**
      * Typical use case in controller: $model->setValues($this->request->post());
      * @param $values
+     * @return bool
      */
     public function setValues($values)
     {
@@ -222,7 +223,9 @@ abstract class Model implements CanCreateSchema
                     }
                 }
             }
+            return true;
         }
+        return false;
     }
 
     private function setPropertyValue(Property $property, $value, $with_cast = true)
