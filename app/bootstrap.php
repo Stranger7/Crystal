@@ -8,14 +8,20 @@
  * file that was distributed with this source code.
  */
 
+// Third party autoloaders
+$autoload = '../vendor/autoload.php';
+if (file_exists($autoload)) {
+    require $autoload;
+}
+
 define('BASE_PATH', '../');
 
 spl_autoload_register
 (
     function($class)
     {
-        $path = __DIR__ . DIRECTORY_SEPARATOR
-            . str_replace(['\\', '/'], DIRECTORY_SEPARATOR, BASE_PATH . $class) . '.php';
+        $path = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, BASE_PATH . $class) . '.php';
+
         if (is_file($path) && is_readable($path)) {
             require_once $path;
             return;
