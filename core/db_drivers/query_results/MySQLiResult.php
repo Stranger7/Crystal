@@ -32,6 +32,13 @@ class MySQLiResult extends QueryResult
      */
     public function result()
     {
-        return ($this->result->num_rows > 0) ? $this->result->fetch_all(MYSQLI_ASSOC) : [];
+        $results_array = [];
+        if ($this->result->num_rows > 0)
+        {
+            while ($row = $this->result->fetch_assoc()) {
+                $results_array[] = $row;
+            }
+        }
+        return $results_array;
     }
 }
