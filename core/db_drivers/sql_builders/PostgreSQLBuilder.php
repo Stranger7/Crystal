@@ -25,6 +25,18 @@ class PostgreSQLBuilder extends SqlBuilder
     }
 
     /**
+     * @return string
+     */
+    protected function compileLimitExpr()
+    {
+        if ($this->limit !== false)
+        {
+            return ' LIMIT ' . $this->limit . ($this->offset ? ' OFFSET ' . $this->offset : '');
+        }
+        return '';
+    }
+
+    /**
      * This function has been copied from the framework "CodeIgniter v.3"
      *
      * "Smart" Escape String
@@ -36,7 +48,8 @@ class PostgreSQLBuilder extends SqlBuilder
      */
     public function escape($param)
     {
-        if (is_bool($param)) {
+        if (is_bool($param))
+        {
             return ($param) ? 'TRUE' : 'FALSE';
         }
         return parent::escape($param);

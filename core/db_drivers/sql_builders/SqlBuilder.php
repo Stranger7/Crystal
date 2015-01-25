@@ -101,6 +101,16 @@ abstract class SqlBuilder
     protected $order_by = [];
 
     /**
+     * @var bool
+     */
+    protected $limit = false;
+
+    /**
+     * @var bool
+     */
+    protected $offset = false;
+
+    /**
      * @var array
      */
     protected $binds = [];
@@ -170,7 +180,8 @@ abstract class SqlBuilder
                 $qs = $this->compileSelectExpr()
                     . $this->compileFromExpr()
                     . $this->compileWhereExpr()
-                    . $this->compileOrderByExpr();
+                    . $this->compileOrderByExpr()
+                    . $this->compileLimitExpr();
                 break;
             case self::CUSTOM_QUERY:
                 $qs = $this->custom_sql;
@@ -376,6 +387,28 @@ abstract class SqlBuilder
         return $this;
     }
 
+    /**
+     * @param int $limit
+     * @param bool|int $offset
+     * @return \core\db_drivers\sql_builders\SqlBuilder
+     */
+    function limit($limit, $offset = false)
+    {
+        $this->limit = (int) $limit;
+        if ($offset !== false) $this->offset = (int) $offset;
+        return $this;
+    }
+
+    /**
+     * @param int $offset
+     * @return \core\db_drivers\sql_builders\SqlBuilder
+     */
+    function offset($offset)
+    {
+        $this->offset = (int) $offset;
+        return $this;
+    }
+
     /*===============================================================*/
     /*                      C O M P I L E R S                        */
     /*===============================================================*/
@@ -421,6 +454,18 @@ abstract class SqlBuilder
             $result = ' ORDER BY ' . implode(', ', $this->order_by);
         }
         return $result;
+    }
+
+    /**
+     * @return string
+     */
+    protected function compileLimitExpr()
+    {
+        if ($this->limit !== false)
+        {
+            return ' LIMIT ' . ($this->offset ? $this->offset . ', ' : '') . $this->limit;
+        }
+        return '';
     }
 
     /**
