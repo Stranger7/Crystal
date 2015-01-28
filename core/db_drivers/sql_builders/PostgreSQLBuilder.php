@@ -13,7 +13,10 @@
 
 namespace core\db_drivers\sql_builders;
 
-
+/**
+ * Class PostgreSQLBuilder
+ * @package core\db_drivers\sql_builders
+ */
 class PostgreSQLBuilder extends SqlBuilder
 {
     /**

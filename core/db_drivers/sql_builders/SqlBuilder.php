@@ -364,8 +364,9 @@ abstract class SqlBuilder
      */
     public function where($expr, $binds = [], $operator = 'AND')
     {
+        $expr = '(' . $expr . ')';
         $operator = (!empty($operator) ? trim($operator) : 'AND');
-        if (!empty($this->where)) $expr .= ($operator . ' ') . $expr;
+        if (!empty($this->where)) $expr = $operator . ' ' . $expr;
         $this->where[] = $expr;
 
         if (!is_array($binds)) {
