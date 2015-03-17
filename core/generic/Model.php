@@ -356,7 +356,7 @@ abstract class Model implements CanCreateSchema
     public function existWithId($id = Property::NOT_INITIALIZED)
     {
         if ($id === Property::NOT_INITIALIZED) {
-            if ($this->id->initialized()) {
+            if ($this->id->initialized() && !$this->id->isEmpty()) {
                 $id = $this->id->get();
             } else {
                 return false;
@@ -497,7 +497,7 @@ abstract class Model implements CanCreateSchema
     private function createParamArray()
     {
         $data = [];
-        if ($this->id->initialized()) {
+        if ($this->id->initialized() && !$this->id->isEmpty()) {
             $data[$this->id->name()] = $this->id->preparedForDb();
         }
         /** @var Property $property */
