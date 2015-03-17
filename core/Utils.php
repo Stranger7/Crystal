@@ -23,6 +23,8 @@ class Utils
     /**
      * @param array $context
      * @return string
+     *
+     * @deprecated
      */
     public static function contextToString($context = [])
     {
@@ -46,6 +48,11 @@ class Utils
         return str_replace(array('\\\\', '\\\''), array('\\', '\''), rtrim($result));
     }
 
+    /**
+     * @param array $var
+     * @param string $newline
+     * @return string
+     */
     public static function arrayToString($var=[], $newline='<br>')
     {
         $result = '';
@@ -217,5 +224,15 @@ class Utils
     public static function currentUrl()
     {
         return '//' . $_SERVER['HTTP_HOST'] . $_SERVER["REQUEST_URI"];
+    }
+
+    /**
+     * @param string $prefix
+     * @param string $table_name
+     * @return string
+     */
+    public static function tableNameWithPrefix($prefix, $table_name)
+    {
+        return (!empty($prefix) ? $prefix . $table_name : $table_name);
     }
 }
