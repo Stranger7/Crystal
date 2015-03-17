@@ -179,6 +179,7 @@ abstract class SqlBuilder
             case self::SELECT_QUERY:
                 $qs = $this->compileSelectExpr()
                     . $this->compileFromExpr()
+                    . $this->compileJoinExpr()
                     . $this->compileWhereExpr()
                     . $this->compileOrderByExpr()
                     . $this->compileLimitExpr();
@@ -346,12 +347,12 @@ abstract class SqlBuilder
      * @param string $type should be INNER|LEFT|RIGHT|LEFT OUTER|RIGHT OUTER
      * @return \core\db_drivers\sql_builders\SqlBuilder
      */
-    public function join($table, $on, $type)
+    public function join($table, $on, $type = 'INNER')
     {
         $this->join[] = [
             'table' => trim($table),
             'on'    => trim($on),
-            '$type' => trim($type)
+            'type'  => trim($type)
         ];
         return $this;
     }
@@ -366,16 +367,29 @@ abstract class SqlBuilder
     {
         $expr = '(' . $expr . ')';
         $operator = (!empty($operator) ? trim($operator) : 'AND');
-        if (!empty($this->where)) $expr = $operator . ' ' . $expr;
+        if (!empty($this->where)) $expr = ($operator . ' ') . $expr;
         $this->where[] = $expr;
 
-        if (!is_array($binds)) {
+        if (!is_array($binds))
+        {
             $binds = [$binds];
         }
         // Make sure we're using numeric keys
         $binds = array_values($binds);
         $this->binds = array_merge($this->binds, $binds);
         return $this;
+    }
+
+    /**
+     * @param string $expr
+     * @param array $binds
+     * @param string $operator
+     * @return \core\db_drivers\sql_builders\SqlBuilder
+     */
+    public function whereIn($expr, $binds = [], $operator = 'AND')
+    {
+        $expr = $expr . ' IN (' . implode(',', array_fill(0, count($binds), '?')) . ')';
+        return $this->where($expr, $binds, $operator);
     }
 
     /**
@@ -436,10 +450,25 @@ abstract class SqlBuilder
     /**
      * @return string
      */
+    protected function compileJoinExpr()
+    {
+        $result = '';
+        foreach($this->join as $item)
+        {
+            $result .= (!empty($item['type']) ? (' ' . $item['type']) : '')
+                . ' JOIN ' . $item['table'] . ' ON ' . $item['on'];
+        }
+        return $result;
+    }
+
+    /**
+     * @return string
+     */
     protected function compileWhereExpr()
     {
         $result = '';
-        if (!empty($this->where)) {
+        if (!empty($this->where))
+        {
             $result = ' WHERE ' . implode(' ', $this->where);
         }
         return $result;
@@ -451,7 +480,8 @@ abstract class SqlBuilder
     protected function compileOrderByExpr()
     {
         $result = '';
-        if (!empty($this->order_by)) {
+        if (!empty($this->order_by))
+        {
             $result = ' ORDER BY ' . implode(', ', $this->order_by);
         }
         return $result;
