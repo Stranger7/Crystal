@@ -221,4 +221,17 @@ class App
     {
         return (new View($name))->load($data);
     }
+
+    /**
+     * immediately terminate the script. In this case, write the correct log
+     */
+    public static function terminate($message = '')
+    {
+        if (!empty($message))
+        {
+            App::logger()->notice($message);
+        }
+        App::logger()->stop();
+        exit();
+    }
 }
