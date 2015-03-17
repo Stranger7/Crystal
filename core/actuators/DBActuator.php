@@ -50,15 +50,19 @@ class DBActuator implements Actuator
         $driver_name = 'core\\db_drivers\\' . self::getDriverName($section);
         $driver = new $driver_name;
         $default = false;
-        foreach(App::config()->get($section) as $item => $value) {
-            if ($item != Config::DRIVER_SIGNATURE) {
-                switch ($item) {
+        foreach(App::config()->get($section) as $item => $value)
+        {
+            if ($item != Config::DRIVER_SIGNATURE)
+            {
+                switch ($item)
+                {
                     case Config::DEFAULT_SIGNATURE:
                         $default = Utils::boolValue($value);
                         break;
                     default:
                         $func = 'set' . Utils::toCamelCase($item);
-                        if (method_exists($driver, $func)) {
+                        if (method_exists($driver, $func))
+                        {
                             $driver->$func($value);
                         }
                 }
