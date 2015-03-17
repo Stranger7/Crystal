@@ -30,6 +30,7 @@ abstract class DbDriver
     private $username = '';
     private $password = '';
     private $database = '';
+    private $table_prefix = '';
 
     protected $bd_int_data_types = [
         'SERIAL',
@@ -180,6 +181,35 @@ abstract class DbDriver
     /**
      * @return string
      */
+    public function getTablePrefix()
+    {
+        return $this->table_prefix;
+    }
+
+    /**
+     * @param string $table_prefix
+     * @return DbDriver
+     */
+    public function setTablePrefix($table_prefix)
+    {
+        $this->table_prefix = $table_prefix;
+        return $this;
+    }
+
+    /**
+     * Add schema name if specified
+     *
+     * @param string $table_name
+     * @return string
+     */
+    public function getTableName($table_name)
+    {
+        return (!empty($this->table_prefix) ? $this->table_prefix . '.' . $table_name : $table_name);
+    }
+
+    /**
+     * @return string
+     */
     public function getSocket()
     {
         return $this->socket;
@@ -273,6 +303,37 @@ abstract class DbDriver
      * @return null|\core\db_drivers\query_results\QueryResult
      */
     abstract protected function doQuery($sql);
+
+    /*===============================================================*/
+    /*                    T R A N S A C T I O N                      */
+    /*===============================================================*/
+
+    /**
+     * Start transaction.
+     * Supported in MySQL and PostgreSQL
+     */
+    public function beginTransaction()
+    {
+        $this->doQuery('BEGIN');
+    }
+
+    /**
+     * Commit transaction.
+     * Supported in MySQL and PostgreSQL
+     */
+    public function commitTransaction()
+    {
+        $this->doQuery('COMMIT');
+    }
+
+    /**
+     * Rollback transaction.
+     * Supported in MySQL and PostgreSQL
+     */
+    public function rollbackTransaction()
+    {
+        $this->doQuery('ROLLBACK');
+    }
 
     /*===============================================================*/
     /*                    C R E A T E    T A B L E                   */
@@ -424,8 +485,8 @@ abstract class DbDriver
         if (!is_array($fields)) {
             $fields = [$fields];
         }
-        $sql = 'CREATE' . $index_type
-            . ' ' . $table_name . '_' . implode('_', $fields)
+        $sql = 'CREATE ' . $index_type
+            . ' ' . str_replace('.', '_', $table_name) . '_' . implode('_', $fields)
             . ' ON ' . $table_name
             . ' (' . implode(', ', $fields) . ')';
         return $this->doQuery($sql);
