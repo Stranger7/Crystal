@@ -43,7 +43,7 @@ class Integer extends Property
      */
     public function preparedForDb()
     {
-        return strval($this->value);
+        return $this->initialized() ? strval($this->value) : null;
     }
 
     /**
