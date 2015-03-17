@@ -25,18 +25,20 @@ class DbUpgrade extends Controller
     const MIGRATION_FILENAME_PREFIX = 'm';
 
     /**
-     * @var \core\generic\DbDriver
+     * @var string
      */
+    protected $table_name = '';
 
     public function __construct($dsn = '')
     {
         parent::__construct($dsn);
+        $this->table_name = Utils::tableNameWithPrefix($this->db()->getTablePrefix(), self::MIGRATION_TABLE);
     }
 
     public function init()
     {
         echo 'Migration initializing...';
-        $this->db()->createTable(self::MIGRATION_TABLE, [
+        $this->db()->createTable($this->table_name, [
             'fields' => [
                 'id' => [
                     'type'        => 'INTEGER',
@@ -51,7 +53,7 @@ class DbUpgrade extends Controller
                 ]
             ]
         ]);
-        echo 'success. Table ' . self::MIGRATION_TABLE . ' created.' . PHP_EOL;
+        echo 'success. Table ' . $this->table_name . ' created.' . PHP_EOL;
     }
 
     /**
@@ -133,7 +135,7 @@ class DbUpgrade extends Controller
     {
         return $this->db()
             ->select()
-            ->from(self::MIGRATION_TABLE)
+            ->from($this->table_name)
             ->where('id = ?', $migration_id)
             ->run()->row();
     }
@@ -152,7 +154,7 @@ class DbUpgrade extends Controller
         $m = new $class_name();
         if ($m instanceof Migration) {
             if ($m->up($this->db())) {
-                $this->db()->insert(self::MIGRATION_TABLE, [
+                $this->db()->insert($this->table_name, [
                     'id' => $migration_id
                 ], 'id');
                 echo 'ok' . PHP_EOL;
@@ -176,7 +178,7 @@ class DbUpgrade extends Controller
         $m = new $class_name();
         if ($m instanceof Migration) {
             if ($m->down($this->db())) {
-                $this->db()->delete(self::MIGRATION_TABLE)->where('id = ?', $migration_id)->run();
+                $this->db()->delete($this->table_name)->where('id = ?', $migration_id)->run();
                 echo 'ok' . PHP_EOL;
             }
         } else {
@@ -189,7 +191,7 @@ class DbUpgrade extends Controller
      */
     private function getLastMigrationId()
     {
-        $row = $this->db()->select('MAX(id) AS max_id')->from(self::MIGRATION_TABLE)->run()->row();
+        $row = $this->db()->select('MAX(id) AS max_id')->from($this->table_name)->run()->row();
         return ($row) ? intval($row->max_id) : 0;
     }
 }
