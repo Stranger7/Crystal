@@ -63,7 +63,7 @@ class Http
         \header('Location: ' . $url, true, $status_code);
         echo '<meta http-equiv="Location" content="' . $url . '">';
         echo '<script type="text/javascript">window.location = "' . $url . '"</script>';
-        exit();
+        App::terminate('Redirect to ' . $url);
     }
 
     /**
@@ -73,7 +73,7 @@ class Http
     {
         $this->header(403);
         App::view('common/forbidden');
-        exit();
+        App::terminate('forbidden');
     }
 
     /**
