@@ -50,7 +50,7 @@ class CException extends \Exception
      */
     public function getContextStr()
     {
-        return Utils::contextToString($this->context);
+        return Utils::arrayToString($this->context, PHP_EOL);
     }
 
     /**
