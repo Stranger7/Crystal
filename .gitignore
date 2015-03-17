@@ -1,1 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
+app/config/cli_config2.ini
+app/config/web_config2.ini
+site/css
+site/fonts
+site/images
+site/js
