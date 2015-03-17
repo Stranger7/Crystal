@@ -18,6 +18,7 @@ use core\Config;
 use core\interfaces\CanCreateSchema;
 use core\generic\DbDriver;
 use core\generic\Session;
+use core\Utils;
 
 /**
  * Class DbSession
@@ -51,6 +52,7 @@ class DbSession extends Session implements CanCreateSchema
         $this->table_name = ($item = App::config()->get(Config::SESSION_SECTION, 'table_name'))
             ? $item
             : $this->table_name;
+        $this->table_name = Utils::tableNameWithPrefix($this->db->getTablePrefix(), $this->table_name);
 
         parent::__construct();
     }
