@@ -7,10 +7,3 @@ site/images
 site/js
 composer.lock
 composer.json
-app/views/parts/print_cart.php
-app/views/parts/table.php
-app/views/parts/index.php
-app/web/Main.php
-app/web/Parts.php
-app/cli/UpdateParts.php
-app/extensions/jsPubSession.php
