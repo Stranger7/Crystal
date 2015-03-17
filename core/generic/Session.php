@@ -166,7 +166,8 @@ abstract class Session
                 }
                 if (($this->updated + $this->expiration) < time())
                 {
-                    App::logger()->debug('Session [' . __CLASS__ . '] with id ' . $this->id .  ' expired');
+                    App::logger()->debug('Session [' . __CLASS__ . '] with id ' . $this->id .  ' expired: '
+                        . date('Y-m-d H:i:s', $this->updated) . ' ' . $this->expiration);
                     $do_destroy = true;
                     break;
                 }
