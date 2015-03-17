@@ -105,7 +105,7 @@ class StreamLogger extends Logger
             $this->withSuffix($this->getIPAddress()) .
             $this->getLevelName($level) . ' => ' .
             $message .
-            (!empty($context) ? PHP_EOL . $this->indent(Utils::contextToString($context)) : '')
+            (!empty($context) ? PHP_EOL . $this->indent(Utils::arrayToString($context, PHP_EOL)) : '')
         );
     }
 
