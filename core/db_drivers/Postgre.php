@@ -275,7 +275,7 @@ namespace core\db_drivers
             } elseif (in_array($type, $this->bd_bool_data_types)) {
                 $type = 'BOOLEAN';
             } elseif ($type == 'DATETIME') {
-                $type = 'DATE';
+                $type = 'timestamp without time zone';
             }
             $result .= ' ' . $type;
             if (in_array($type, $this->bd_int_data_types)) {
